@@ -16,5 +16,13 @@
     "express": "^5.1.0",
     "mysql2": "^3.14.3",
     "openai": "^5.15.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YanalSerhan/Fullstack_Project.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YanalSerhan/Fullstack_Project/issues"
+  },
+  "homepage": "https://github.com/YanalSerhan/Fullstack_Project#readme"
 }
