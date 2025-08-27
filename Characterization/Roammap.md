@@ -37,3 +37,7 @@
 3. Synonym Expansion.
 
 4. Multi-language Support.
+
+5. Undo last operation.
+
+6. Entities (regular user, user with privilage).
