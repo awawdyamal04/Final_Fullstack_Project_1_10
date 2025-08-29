@@ -6,15 +6,18 @@ project-root/
 │   │   ├── controllers/
 │   │   │   ├── dbController.js   # Handle upload, schema extraction
 │   │   │   ├── queryController.js# Run queries, export CSV/JSON
-│   │   │   └── aiController.js   # Prompt → SQL (OpenAI)
+│   │   │   ├── aiController.js   # Prompt → SQL (OpenAI)
+|   |   |   └── historyController.js   # Save & fetch query history
 │   │   ├── routes/
-│   │   │   ├── dbRoutes.js
-│   │   │   ├── queryRoutes.js
-│   │   │   └── aiRoutes.js
+│   │   │   ├── dbRoutes.js       # /api/db
+│   │   │   ├── queryRoutes.js    # /api/query
+│   │   │   ├── aiRoutes.js       # /api/ai
+|   |   |   └── historyRoutes.js  # /api/history
 │   │   ├── services/
 │   │   │   ├── dbService.js      # Manage DB schema, relationships
 │   │   │   ├── queryService.js   # Execute validated SQL
-│   │   │   └── aiService.js      # Calls OpenAI API, validates SQL
+│   │   │   ├── aiService.js      # Calls OpenAI API, validates SQL
+|   |   |   └── historyService.js # Handles query history storage
 │   │   ├── middlewares/
 │   │   │   ├── errorHandler.js   # Handle errors consistently
 │   │   │   └── validateSQL.js    # Security checks for SQL
