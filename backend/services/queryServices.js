@@ -1,7 +1,7 @@
 import pool from "../config/dbConfig.js";
 
 /**
- * Run a query and return all rows (existing behavior).
+ * Run a query and return all rows (non-streamed).
  */
 export async function runQuery(sql) {
   try {
@@ -14,20 +14,21 @@ export async function runQuery(sql) {
 }
 
 /**
- * Stream query results to a writable stream in chunks.
- * - format: 'json' (default) or 'csv'
- * - writable: any Node writable stream (e.g., express res)
- *
- * Usage from controller:
- *   await streamQuery(sql, res, { format: 'json' });
- *   await streamQuery(sql, res, { format: 'csv' });
+ * Stream query results by paging (LIMIT/OFFSET).
+ * - format: 'json' or 'csv'
+ * - writable: e.g. express res
+ * - batchSize default 1000
  */
-export async function streamQuery(sql, writable, { format = "json" } = {}) {
-  const conn = await pool.getConnection();
+export async function streamQuery(sql, writable, { format = "json", batchSize = 1000 } = {}) {
+  // remove trailing semicolon if present
+  sql = sql.trim().replace(/;$/, "");
+  // compute total rows safely by wrapping original query
+  const countSql = `SELECT COUNT(*) AS cnt FROM (${sql}) AS _sub`;
   try {
-    const query = conn.query(sql).stream({ objectMode: true });
+    const [[{ cnt }]] = await pool.query(countSql);
+    const total = Number(cnt) || 0;
 
-    // helper to escape csv values
+    // csv helper
     const escapeCsv = (val) => {
       if (val === null || val === undefined) return "";
       const s = String(val);
@@ -36,67 +37,49 @@ export async function streamQuery(sql, writable, { format = "json" } = {}) {
         : s;
     };
 
-    return await new Promise((resolve, reject) => {
-      let firstRow = true;
-      let headers = null;
+    let firstRow = true;
+    let headersWritten = false;
+    for (let offset = 0; offset < total; offset += batchSize) {
+      const pageSql = `SELECT * FROM (${sql}) AS _sub LIMIT ? OFFSET ?`;
+      const [rows] = await pool.query(pageSql, [batchSize, offset]);
 
-      query.on("error", (err) => {
-        // stream/query error
-        query.destroy();
-        reject(err);
-      });
-
-      query.on("data", (row) => {
-        try {
-          if (format === "json") {
-            if (firstRow) {
-              writable.write("[");
-              writable.write(JSON.stringify(row));
-            } else {
-              writable.write("," + JSON.stringify(row));
-            }
-          } else if (format === "csv") {
-            if (firstRow) {
-              headers = Object.keys(row);
-              writable.write(headers.map(escapeCsv).join(",") + "\n");
-            }
-            const line = (headers || Object.keys(row))
-              .map((h) => escapeCsv(row[h]))
-              .join(",");
+      if (format === "json") {
+        for (const row of rows) {
+          if (firstRow) {
+            writable.write("[");
+            writable.write(JSON.stringify(row));
+            firstRow = false;
+          } else {
+            writable.write("," + JSON.stringify(row));
+          }
+        }
+      } else { // csv
+        if (rows.length) {
+          if (!headersWritten) {
+            const headers = Object.keys(rows[0]);
+            writable.write(headers.map(escapeCsv).join(",") + "\n");
+            headersWritten = true;
+          }
+          for (const row of rows) {
+            const line = Object.keys(row).map((h) => escapeCsv(row[h])).join(",");
             writable.write(line + "\n");
           }
-          firstRow = false;
-        } catch (err) {
-          query.destroy(err);
         }
-      });
+      }
+      // allow event loop to process between pages
+      await new Promise((r) => setImmediate(r));
+    }
 
-      query.on("end", () => {
-        try {
-          if (format === "json") {
-            if (firstRow) {
-              // no rows were written
-              writable.write("[]");
-            } else {
-              writable.write("]");
-            }
-          }
-          // finish writable if it supports end (express res should not be ended here if you want headers set before)
-          resolve();
-        } catch (err) {
-          reject(err);
-        } finally {
-          conn.release();
-        }
-      });
-
-      query.on("close", () => {
-        // safety - ensure connection released (end will also release)
-        try { conn.release(); } catch (_) {}
-      });
-    });
+    // finish json if needed
+    if (format === "json") {
+      if (firstRow) {
+        writable.write("[]");
+      } else {
+        writable.write("]");
+      }
+    }
   } catch (err) {
-    try { conn.release(); } catch (_) {}
+    // propagate error so controller can handle headersSent logic
     throw err;
   }
 }
