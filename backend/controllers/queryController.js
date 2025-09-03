@@ -14,7 +14,7 @@ export async function handleRunQuery(req, res) {
 
 export async function exportQueryAsCSV(req, res) {
   try {
-    const { sql } = req.query;
+    const sql = req.query?.sql || req.body?.sql; // accept query or body
     if (!sql) return res.status(400).json({ error: "SQL query is required" });
 
     res.setHeader("Content-Type", "text/csv; charset=utf-8");
@@ -30,7 +30,7 @@ export async function exportQueryAsCSV(req, res) {
 
 export async function exportQueryAsJSON(req, res) {
   try {
-    const { sql } = req.query;
+    const sql = req.query?.sql || req.body?.sql; // accept query or body
     if (!sql) return res.status(400).json({ error: "SQL query is required" });
 
     res.setHeader("Content-Type", "application/json; charset=utf-8");
