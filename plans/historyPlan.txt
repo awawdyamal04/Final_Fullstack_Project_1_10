@@ -1,0 +1,19 @@
+History features:
+ 
+1. I want each user to see there own history only not others. 
+Solution: create a new database for the system (not the one that the user uploaded),
+it should contain table for the users of the system and table for the history.
+Cols of users table: userID, first name, last name, email.
+Cols of history table: userID, prmopt, sql.
+
+
+2. I want to save the question that the user wants not everything.
+Solution: add boolean save.
+
+3. CRUD operations.
+
+In each of these features, we should handle the edge cases.
+
+Note for the future: in the frontend there will be a sidebar for the history, to diffrentiate between the questions we should
+give a title for each question between 3-6 words. When the user clicks on it, the question should appear in the terminal, the sql
+appears in the proper place, and the user can run it to see the result.
