@@ -16,6 +16,7 @@
     "express": "^5.1.0",
     "mongodb": "^6.19.0",
     "mongoose": "^8.18.0",
+    "json2csv": "^6.0.0-alpha.2",
     "mysql2": "^3.14.3",
     "openai": "^5.15.0"
   },
