@@ -2,10 +2,10 @@ import { runQuery, streamQuery } from "../services/queryServices.js";
 
 export async function handleRunQuery(req, res) {
   try {
-    const { sql } = req.body;
+    const { sql, params } = req.body;
     if (!sql) return res.status(400).json({ error: "SQL query is required" });
 
-    const result = await runQuery(sql);
+    const result = await runQuery(sql, params || []);
     res.json({ result });
   } catch (err) {
     res.status(500).json({ error: err.message });
