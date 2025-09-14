@@ -1,18 +1,29 @@
 import pool from "../config/dbConfig.js";
+import { open } from "sqlite";
+import sqlite3 from "sqlite3";
+import { getCurrentDbPath } from "../config/dbState.js";
 
-/**
- * Run a query and return all rows (non-streamed).
- */
-export async function runQuery(sql) {
+export async function runQuery(sql, params = []) {
+  const filePath = getCurrentDbPath();
+
+  if (!filePath) {
+    throw new Error("No database loaded. Please upload a DB file first.");
+  }
+
+  const db = await open({ filename: filePath, driver: sqlite3.Database });
+
   try {
-    const [rows] = await pool.query(sql);
-    return rows;
-  } catch (err) {
-    console.error("Query Error:", err);
-    throw err;
+    const trimmed = sql.trim().toLowerCase();
+    if (trimmed.startsWith("select")) {
+      return await db.all(sql, params);
+    } else {
+      const result = await db.run(sql, params);
+      return { changes: result.changes, lastID: result.lastID };
+    }
+  } finally {
+    await db.close();
   }
 }
-
 /**
  * Stream query results by paging (LIMIT/OFFSET).
  * - format: 'json' or 'csv'

@@ -1,9 +1,39 @@
 import queryRoutes from './backend/routes/queryRoutes.js';
 import aiRoutes from './backend/routes/aiRoutes.js';
 import historyRoutes from './backend/routes/historyRoutes.js';
+import dbRouter from "./backend/routes/dbRoutes.js";
 import dotenv from 'dotenv';
 import { connectDB, disconnectDB } from './backend/middleware/db.js';
 import express from 'express';
+import fs from "fs";
+import path from "path";
+
+function cleanupUploads() {
+  const uploadDir = path.join(process.cwd(), "uploads");
+
+  if (!fs.existsSync(uploadDir)) {
+    console.log("Uploads directory does not exist:", uploadDir);
+    return;
+  }
+
+  const files = fs.readdirSync(uploadDir);
+  if (files.length === 0) {
+    console.log("Uploads directory is already empty.");
+    return;
+  }
+
+  console.log("Cleaning up files in uploads directory:", files);
+
+  for (const file of files) {
+    const filePath = path.join(uploadDir, file);
+    try {
+      fs.unlinkSync(filePath);
+      console.log("Deleted:", filePath);
+    } catch (err) {
+      console.error("Failed to delete:", filePath, err);
+    }
+  }
+}
 
 dotenv.config();
 const app = express();
@@ -13,6 +43,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/queries', queryRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/history', historyRoutes);
+app.use("/api/db", dbRouter);
 
 // Connect to the database when the server starts
 connectDB();
@@ -23,3 +54,15 @@ app.listen(PORT, () => {
 });
 
 // Gracefully disconnect from the database on server shutdown
+// When server is shutting down
+process.on("SIGINT", () => {
+  console.log("Cleaning up uploaded files...");
+  cleanupUploads();
+  process.exit();
+});
+
+process.on("SIGTERM", () => {
+  console.log("Cleaning up uploaded files...");
+  cleanupUploads();
+  process.exit();
+});
