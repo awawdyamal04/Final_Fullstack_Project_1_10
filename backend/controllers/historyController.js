@@ -21,12 +21,6 @@ export async function saveHistory(req, res) {
         return res.status(400).json({ error: 'Invalid value for save. Must be true or false.' });
     }
 
-    // Assignment to constant variable
-    if (save === undefined) {
-        // Default behavior: save the entry
-        save = true;
-    }
-
     if (!userID) {
         return res.status(400).json({ error: 'userID is required' });
     }
@@ -35,7 +29,7 @@ export async function saveHistory(req, res) {
         return res.status(400).json({ error: 'prompt and sql are required' });
     }
     try {
-        if (!save) {
+        if (save === false) {
             return res.status(200).json({ message: 'Entry not saved as per request' });
         }
         const newEntry = await addHistoryEntry(userID, prompt, sql);

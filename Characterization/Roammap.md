@@ -41,3 +41,5 @@
 5. Undo last operation.
 
 6. Entities (regular user, user with privilage).
+
+7. Allow adding new terminal tab.
