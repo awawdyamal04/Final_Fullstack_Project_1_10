@@ -1,19 +1,17 @@
-import pool from "../config/dbConfig.js";
 import { open } from "sqlite";
 import sqlite3 from "sqlite3";
 import { getCurrentDbPath } from "../config/dbState.js";
 
+/**
+ * Run a query and return all rows (non-streamed).
+ */
 export async function runQuery(sql, params = []) {
-  const filePath = getCurrentDbPath();
+  const dbPath = getCurrentDbPath();
+  if (!dbPath) throw new Error("No database loaded. Please upload a DB file first.");
 
-  if (!filePath) {
-    throw new Error("No database loaded. Please upload a DB file first.");
-  }
-
-  const db = await open({ filename: filePath, driver: sqlite3.Database });
-
+  const db = await open({ filename: dbPath, driver: sqlite3.Database });
   try {
-    const trimmed = sql.trim().toLowerCase();
+    const trimmed = String(sql || "").trim().toLowerCase();
     if (trimmed.startsWith("select")) {
       return await db.all(sql, params);
     } else {
@@ -21,9 +19,10 @@ export async function runQuery(sql, params = []) {
       return { changes: result.changes, lastID: result.lastID };
     }
   } finally {
-    await db.close();
+    try { await db.close(); } catch (_) {}
   }
 }
+
 /**
  * Stream query results by paging (LIMIT/OFFSET).
  * - format: 'json' or 'csv'
@@ -31,28 +30,33 @@ export async function runQuery(sql, params = []) {
  * - batchSize default 1000
  */
 export async function streamQuery(sql, writable, { format = "json", batchSize = 1000 } = {}) {
-  // remove trailing semicolon if present
-  sql = sql.trim().replace(/;$/, "");
-  // compute total rows safely by wrapping original query
-  const countSql = `SELECT COUNT(*) AS cnt FROM (${sql}) AS _sub`;
-  try {
-    const [[{ cnt }]] = await pool.query(countSql);
-    const total = Number(cnt) || 0;
+  sql = String(sql || "").trim().replace(/;$/, "");
+  if (!sql) throw new Error("Empty SQL");
 
-    // csv helper
+  const dbPath = getCurrentDbPath();
+  if (!dbPath) throw new Error("No database selected. Please upload a .db file first.");
+
+  const db = await open({ filename: dbPath, driver: sqlite3.Database });
+  try {
+    const countSql = `SELECT COUNT(*) AS cnt FROM (${sql}) AS _sub`;
+    const countRow = await db.get(countSql);
+    const total = Number((countRow && countRow.cnt) || 0);
+
     const escapeCsv = (val) => {
       if (val === null || val === undefined) return "";
       const s = String(val);
-      return (s.includes('"') || s.includes(",") || s.includes("\n"))
-        ? `"${s.replace(/"/g, '""')}"`
-        : s;
+      if (s.includes('"') || s.includes(",") || s.includes("\n")) {
+        return '"' + s.replace(/"/g, '""') + '"';
+      }
+      return s;
     };
 
     let firstRow = true;
     let headersWritten = false;
+
     for (let offset = 0; offset < total; offset += batchSize) {
       const pageSql = `SELECT * FROM (${sql}) AS _sub LIMIT ? OFFSET ?`;
-      const [rows] = await pool.query(pageSql, [batchSize, offset]);
+      const rows = await db.all(pageSql, [batchSize, offset]);
 
       if (format === "json") {
         for (const row of rows) {
@@ -77,11 +81,12 @@ export async function streamQuery(sql, writable, { format = "json", batchSize = 
           }
         }
       }
-      // allow event loop to process between pages
+
+      // let event loop breathe
       await new Promise((r) => setImmediate(r));
     }
 
-    // finish json if needed
+    // finish json output
     if (format === "json") {
       if (firstRow) {
         writable.write("[]");
@@ -89,8 +94,7 @@ export async function streamQuery(sql, writable, { format = "json", batchSize = 
         writable.write("]");
       }
     }
-  } catch (err) {
-    // propagate error so controller can handle headersSent logic
-    throw err;
+  } finally {
+    try { await db.close(); } catch (_) {}
   }
 }
