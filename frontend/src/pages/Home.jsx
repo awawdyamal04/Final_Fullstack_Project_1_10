@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./home.css";
+import FileUploader from "../components/Upload/FileUploader";
 
 const Home = () => {
   const [user, setUser] = useState(null);
@@ -10,7 +11,7 @@ const Home = () => {
   const [error, setError] = useState("");
   const [history, setHistory] = useState([]);
   const [activeTab, setActiveTab] = useState("prompt");
-
+  const [uploadedFile, setUploadedFile] = useState(null);
   // Check if user is logged in
   useEffect(() => {
     const userData =
@@ -183,6 +184,12 @@ const Home = () => {
 
       <main className="home-main">
         <div className="main-container">
+          {/* File Uploader Section */}
+          <div className="uploader-section">
+            <h2>Upload Your Database</h2>
+            <FileUploader onFileSelect={setUploadedFile} />
+          </div>
+          
           <div className="input-section">
             <div className="prompt-container">
               <h2>Enter your query in natural language</h2>
