@@ -4,9 +4,11 @@ import historyRoutes from './backend/routes/historyRoutes.js';
 import dbRouter from "./backend/routes/dbRoutes.js";
 import dotenv from 'dotenv';
 import { connectDB, disconnectDB } from './backend/middleware/db.js';
+import userRoutes from "./backend/routes/userRoutes.js";
 import express from 'express';
 import fs from "fs";
 import path from "path";
+import cors from "cors";
 
 function cleanupUploads() {
   const uploadDir = path.join(process.cwd(), "uploads");
@@ -39,7 +41,8 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use('/api/users', userRoutes);
 app.use('/api/queries', queryRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/history', historyRoutes);
