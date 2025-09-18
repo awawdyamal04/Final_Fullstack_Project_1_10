@@ -1,11 +1,22 @@
 import { runQuery, streamQuery } from "../services/queryServices.js";
+import { addHistoryEntry } from "../services/historyServices.js";
 
 export async function handleRunQuery(req, res) {
   try {
-    const { sql, params } = req.body;
+    const { sql, params, userID, prompt } = req.body;
     if (!sql) return res.status(400).json({ error: "SQL query is required" });
 
     const result = await runQuery(sql, params || []);
+    // Best-effort: save successful executions to history if userID provided
+    if (userID) {
+      const promptForHistory = prompt && String(prompt).trim().length > 0 ? prompt : sql;
+      try {
+        await addHistoryEntry(userID, promptForHistory, sql);
+      } catch (_) {
+        // Do not block response on history save failures
+      }
+    }
+
     res.json({ result });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -94,7 +94,7 @@ const Signup = () => {
       if (data.success) {
         // Store user data
         const userData = {
-          id: data.user.id,
+          userId: data.user.id,
           firstName: data.user.firstName,
           lastName: data.user.lastName,
           email: data.user.email,

@@ -47,11 +47,14 @@ const Login = () => {
       });
 
       const data = await response.json();
+      //data is an object with user and success it came from userController.js
 
       if (data.success) {
         // Store user session
         const userData = {
-          id: data.user.id,
+          userId: data.user.id,
+          firstName: data.user.firstName,
+          lastName: data.user.lastName,
           email: data.user.email,
           rememberMe: formData.rememberMe,
         };

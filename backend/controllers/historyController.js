@@ -1,4 +1,9 @@
-import { getHistoryEntry, addHistoryEntry, updateHistoryEntry, deleteHistoryEntry } from '../services/historyServices.js';
+import { getHistoryEntry, addHistoryEntry, updateHistoryEntry, deleteHistoryEntry, getAllHistory } from '../services/historyServices.js';
+
+export async function getHistory(req, res) {
+  const history = await getAllHistory();
+  res.status(200).json(history);
+}
 
 export async function getUserHistory(req, res) {
   try {
