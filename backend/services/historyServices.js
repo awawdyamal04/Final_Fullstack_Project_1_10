@@ -1,5 +1,9 @@
 import { History } from "../models/History.js";
 
+export async function getAllHistory() {
+  return await History.find();
+}
+
 export async function getHistoryEntry(userID) {
   return await History.find({ userID }).sort({ timestamp: -1 });
 }

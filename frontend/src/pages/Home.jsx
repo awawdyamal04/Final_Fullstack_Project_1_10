@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "./home.css";
 import FileUploader from "../components/Upload/FileUploader";
+import HistoryPanel from "../components/History/HistoryPanel";
+import ExportButtons from "../components/Results/ExportButtons";
+import SqlActions from "../components/SQLView/SqlActions";
+import ResultsTable from "../components/Results/ResultsTable";
+import PromptInput from "../components/Terminal/PromptInput";
 
 const Home = () => {
   const [user, setUser] = useState(null);
@@ -12,6 +17,15 @@ const Home = () => {
   const [history, setHistory] = useState([]);
   const [activeTab, setActiveTab] = useState("prompt");
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+
+  // ✅ Add this handler: populate prompt + sql when selecting history
+  const handleSelectHistory = (item) => {
+    setPrompt(item.prompt || "");
+    setSqlQuery(item.sql || "");
+    setActiveTab("sql");
+  };
+
   // Check if user is logged in
   useEffect(() => {
     const userData =
@@ -93,6 +107,7 @@ const Home = () => {
       // Save to history
       if (user) {
         await saveToHistory(prompt, sqlQuery);
+        setHistoryRefreshKey((prev) => prev + 1);
       }
     } catch (err) {
       setError("Failed to execute query. Please check your SQL syntax.");
@@ -116,6 +131,7 @@ const Home = () => {
           save: true,
         }),
       });
+      setHistoryRefreshKey((prev) => prev + 1);
     } catch (err) {
       console.error("Failed to save to history:", err);
     }
@@ -165,6 +181,8 @@ const Home = () => {
     return <div>Loading...</div>;
   }
 
+  //log the user to the console
+  console.log(user);
   return (
     <div className="home-page">
       <header className="home-header">
@@ -174,7 +192,13 @@ const Home = () => {
             <span>Natural Language to SQL</span>
           </div>
           <div className="user-info">
-            <span>Welcome, {user.firstName || user.username}!</span>
+          <span>
+            Welcome,{" "}
+            {user.firstName
+              ? `${user.firstName} ${user.lastName || ""}`
+              : user.email || user.userId}
+            !
+          </span>
             <button onClick={handleLogout} className="logout-btn">
               Logout
             </button>
@@ -191,32 +215,7 @@ const Home = () => {
           </div>
           
           <div className="input-section">
-            <div className="prompt-container">
-              <h2>Enter your query in natural language</h2>
-              <div className="prompt-input-container">
-                <textarea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="e.g., Show me all customers from New York who made purchases over $1000"
-                  className="prompt-input"
-                  rows={4}
-                />
-                <button
-                  onClick={generateSQL}
-                  disabled={isLoading || !prompt.trim()}
-                  className="generate-btn"
-                >
-                  {isLoading ? (
-                    <>
-                      <span className="spinner"></span>
-                      Generating...
-                    </>
-                  ) : (
-                    "Generate SQL"
-                  )}
-                </button>
-              </div>
-            </div>
+            <PromptInput prompt={prompt} setPrompt={setPrompt} onGenerate={generateSQL} isLoading={isLoading} />
           </div>
 
           <div className="tabs-section">
@@ -242,18 +241,7 @@ const Home = () => {
                 <div className="sql-preview">
                   <div className="sql-header">
                     <h3>Generated SQL Query</h3>
-                    <div className="sql-actions">
-                      <button
-                        onClick={executeQuery}
-                        disabled={isLoading}
-                        className="execute-btn"
-                      >
-                        {isLoading ? "Executing..." : "Execute Query"}
-                      </button>
-                      <button onClick={clearAll} className="clear-btn">
-                        Clear All
-                      </button>
-                    </div>
+                    <SqlActions onExecute={executeQuery} onClear={clearAll} isLoading={isLoading} />
                   </div>
                   <pre className="sql-code">{sqlQuery}</pre>
                 </div>
@@ -263,42 +251,9 @@ const Home = () => {
                 <div className="results-preview">
                   <div className="results-header">
                     <h3>Query Results</h3>
-                    <div className="export-actions">
-                      <button
-                        onClick={() => exportResults("csv")}
-                        className="export-btn csv"
-                      >
-                        Export CSV
-                      </button>
-                      <button
-                        onClick={() => exportResults("json")}
-                        className="export-btn json"
-                      >
-                        Export JSON
-                      </button>
-                    </div>
+                    <ExportButtons onExport={exportResults} />
                   </div>
-                  <div className="results-table-container">
-                    <table className="results-table">
-                      <thead>
-                        <tr>
-                          {queryResult.length > 0 &&
-                            Object.keys(queryResult[0]).map((key, index) => (
-                              <th key={index}>{key}</th>
-                            ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {queryResult.map((row, index) => (
-                          <tr key={index}>
-                            {Object.values(row).map((value, cellIndex) => (
-                              <td key={cellIndex}>{String(value)}</td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <ResultsTable data={queryResult} />
                 </div>
               )}
 
@@ -316,6 +271,13 @@ const Home = () => {
           </div>
 
           {error && <div className="error-message">{error}</div>}
+
+          {/* ✅ HistoryPanel wired with handleSelectHistory */}
+          <HistoryPanel
+            userId={user?.userId}
+            onSelectHistory={handleSelectHistory}
+            refreshKey={historyRefreshKey}
+          />
         </div>
       </main>
     </div>
