@@ -1,79 +1,307 @@
+/* Container */
 .history-panel {
-  background-color: #ffffff;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  padding: 20px;
-  width: 100%;
-  max-width: 400px;
-  margin: 20px auto;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  padding: 16px;
+  max-height: 500px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
+/* Title */
 .history-title {
   font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: 16px;
-  color: #111827;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #1a202c;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 6px;
 }
 
+/* Loading / Empty / Error states */
 .history-loading,
-.history-error,
 .history-empty {
   font-size: 0.9rem;
-  margin-bottom: 12px;
-}
-
-.history-loading {
-  color: #6b7280;
+  color: #718096;
+  text-align: center;
+  padding: 12px;
 }
 
 .history-error {
-  color: #ef4444;
+  font-size: 0.9rem;
+  color: #e53e3e;
+  text-align: center;
+  padding: 12px;
 }
 
-.history-empty {
-  color: #9ca3af;
-  font-style: italic;
-}
-
+/* List */
 .history-list {
-  max-height: 300px;
-  overflow-y: auto;
   list-style: none;
   padding: 0;
   margin: 0;
+  flex-grow: 1;
+  overflow-y: auto;
 }
 
+/* Each item */
 .history-item {
-  background-color: #f9fafb;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  padding: 10px;
+  background: #f9fafb;
+  transition: background 0.2s ease, border 0.2s ease;
   cursor: pointer;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .history-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+  background: #edf2f7;
 }
 
 .history-item.selected {
-  background-color: #dbeafe;
-  border-left: 4px solid #3b82f6;
+  background: #ebf8ff;
+  border-color: #4299e1;
 }
 
+/* Prompt text */
 .history-prompt {
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 4px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #2d3748;
+  margin: 0 0 6px 0;
+  word-break: break-word;
 }
 
+/* SQL text */
 .history-sql {
+  font-size: 0.8rem;
+  color: #718096;
+  word-break: break-word;
+  margin: 0;
+}
+
+/* Item content */
+.history-item-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Action buttons (Edit/Delete) */
+.history-item-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.history-edit-button,
+.history-delete-button,
+.history-save-button,
+.history-cancel-button {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.history-edit-button {
+  background: #edf2f7;
+  color: #2b6cb0;
+}
+
+.history-edit-button:hover {
+  background: #e2e8f0;
+}
+
+.history-delete-button {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.history-delete-button:hover {
+  background: #feb2b2;
+}
+
+.history-save-button {
+  background: #c6f6d5;
+  color: #2f855a;
+}
+
+.history-save-button:hover {
+  background: #9ae6b4;
+}
+
+.history-cancel-button {
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.history-cancel-button:hover {
+  background: #cbd5e0;
+}
+
+/* Edit form */
+.history-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-edit-prompt,
+.history-edit-sql {
+  width: 100%;
+  min-height: 40px;
+  font-size: 0.9rem;
+  padding: 6px;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  resize: vertical;
+}
+
+.history-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+/* History header with title + actions */
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* Clear All button */
+.clear-history-button {
+  background: #fed7d7;        /* light red background */
+  color: #c53030;             /* dark red text */
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
   font-size: 0.85rem;
-  color: #4b5563;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.clear-history-button:hover:not(:disabled) {
+  background: #feb2b2;        /* darker red on hover */
+  transform: translateY(-1px);
+}
+
+.clear-history-button:active:not(:disabled) {
+  transform: translateY(0);
+  background: #fc8181;        /* pressed effect */
+}
+
+.clear-history-button:disabled {
+  background: #e2e8f0;        /* gray when disabled */
+  color: #a0aec0;
+  cursor: not-allowed;
+}
+
+
+/* Overlay background */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+/* Modal box */
+.confirm-modal {
+  background: #fff;
+  padding: 20px 24px;
+  border-radius: 10px;
+  width: 320px;
+  max-width: 90%;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+.confirm-modal h3 {
+  margin-bottom: 12px;
+  font-size: 1.2rem;
+}
+
+.confirm-modal p {
+  margin-bottom: 16px;
+  color: #444;
+}
+
+/* Actions */
+.confirm-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.confirm-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.confirm-btn.danger {
+  background: #f56565;
+  color: white;
+}
+
+.confirm-btn.danger:hover {
+  background: #e53e3e;
+}
+
+.confirm-btn:not(.danger) {
+  background: #edf2f7;
+  color: #2d3748;
+}
+
+.confirm-btn:not(.danger):hover {
+  background: #e2e8f0;
+}
+
+/* Toast container */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 18px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #fff;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+}
+
+/* Toast types */
+.toast.success {
+  background: #48bb78; /* green */
+}
+
+.toast.error {
+  background: #f56565; /* red */
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(20px); }
 }
