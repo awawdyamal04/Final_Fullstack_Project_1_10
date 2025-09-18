@@ -110,7 +110,7 @@ const Home = () => {
         setHistoryRefreshKey((prev) => prev + 1);
       }
     } catch (err) {
-      setError("Failed to execute query. Please check your SQL syntax.");
+      setError("Failed to execute query. Please check your SQL syntax, or upload DB.");
       console.error("Error:", err);
     } finally {
       setIsLoading(false);
@@ -119,7 +119,7 @@ const Home = () => {
 
   const saveToHistory = async (prompt, sql) => {
     try {
-      await fetch("http://localhost:3000/api/history", {
+      const res = await fetch("http://localhost:3000/api/history", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -131,7 +131,11 @@ const Home = () => {
           save: true,
         }),
       });
-      setHistoryRefreshKey((prev) => prev + 1);
+      if (!res.ok) throw new Error("Failed to save to history");
+      const data = await res.json();
+      // Optimistically update history panel
+      setHistory((prev) => [data, ...prev]);
+      setHistoryRefreshKey(historyRefreshKey + 1);
     } catch (err) {
       console.error("Failed to save to history:", err);
     }
@@ -181,8 +185,7 @@ const Home = () => {
     return <div>Loading...</div>;
   }
 
-  //log the user to the console
-  console.log(user);
+
   return (
     <div className="home-page">
       <header className="home-header">
