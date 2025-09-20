@@ -1,35 +1,32 @@
 import React, { useState } from "react";
+import { Upload, CheckCircle, AlertCircle } from "lucide-react";
 import "./FileUploader.css";
 
 const FileUploader = ({ onUploadSuccess }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [message, setMessage] = useState({ type: "", text: "" });
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    setError("");
-    setSuccess("");
+    setMessage({ type: "", text: "" });
 
     if (file && !file.name.endsWith(".db")) {
-      setError("Only .db files are allowed");
+      setMessage({ type: "error", text: "Only .db files are allowed" });
       setSelectedFile(null);
       return;
     }
-
     setSelectedFile(file);
   };
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      setError("Please select a .db file to upload");
+      setMessage({ type: "error", text: "Please select a .db file" });
       return;
     }
 
     setIsUploading(true);
-    setError("");
-    setSuccess("");
+    setMessage({ type: "", text: "" });
 
     try {
       const formData = new FormData();
@@ -40,19 +37,24 @@ const FileUploader = ({ onUploadSuccess }) => {
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
+      if (!response.ok) throw new Error("Upload failed");
 
       const data = await response.json();
-      setSuccess("File uploaded successfully!");
+      setMessage({ type: "success", text: "File uploaded successfully!" });
 
-      if (onUploadSuccess) {
-        onUploadSuccess(data);
-      }
+      if (onUploadSuccess) onUploadSuccess(data);
+
+      setTimeout(() => {
+        setMessage({ type: "", text: "" });
+      }, 3000);
+
     } catch (err) {
-      setError("Failed to upload file. Please try again.");
+      setMessage({ type: "error", text: "Upload failed. Try again." });
       console.error(err);
+      setTimeout(() => {
+        setMessage({ type: "", text: "" });
+      }, 3000);
+
     } finally {
       setIsUploading(false);
     }
@@ -60,29 +62,47 @@ const FileUploader = ({ onUploadSuccess }) => {
 
   return (
     <div className="file-uploader">
-      <h2>Upload a Database File</h2>
-      <div className="upload-box">
+      <h2 className="title">Upload a Database File</h2>
+
+      {/* Upload box */}
+      <label htmlFor="file-upload" className="upload-box">
+        <Upload className="upload-icon" />
+        <p>
+          Drag & drop a <b>.db</b> file here, or{" "}
+          <span className="browse">browse</span>
+        </p>
         <input
           type="file"
           accept=".db"
-          onChange={handleFileChange}
-          className="file-input"
           id="file-upload"
+          className="file-input"
+          onChange={handleFileChange}
         />
-        {selectedFile && (
-          <p className="file-name">Selected: {selectedFile.name}</p>
-        )}
-        <button
-          onClick={handleUpload}
-          disabled={isUploading || !selectedFile}
-          className="upload-btn"
-        >
-          {isUploading ? "Uploading..." : "Upload"}
-        </button>
-      </div>
+      </label>
 
-      {error && <div className="error-message">{error}</div>}
-      {success && <div className="success-message">{success}</div>}
+      {/* File name */}
+      {selectedFile && <p className="file-name">📂 {selectedFile.name}</p>}
+
+      {/* Upload button */}
+      <button
+        className="upload-btn"
+        onClick={handleUpload}
+        disabled={isUploading || !selectedFile}
+      >
+        {isUploading ? "Uploading..." : "Upload"}
+      </button>
+
+      {/* Toast message */}
+      {message.text && (
+        <div className={`toast ${message.type}`}>
+          {message.type === "success" ? (
+            <CheckCircle className="toast-icon" />
+          ) : (
+            <AlertCircle className="toast-icon" />
+          )}
+          <span>{message.text}</span>
+        </div>
+      )}
     </div>
   );
 };

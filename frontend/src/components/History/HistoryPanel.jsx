@@ -38,9 +38,6 @@ const HistoryPanel = ({ userId, onSelectHistory, refreshKey }) => {
   // item is history object it has _id, prompt, sql, userID
   const handleClick = (item) => {
     setSelectedId(item._id);
-    if (refreshKey) {
-      refreshKey(item.sql);
-    }
     if (onSelectHistory) {
       onSelectHistory(item);
     }
@@ -217,6 +214,10 @@ const HistoryPanel = ({ userId, onSelectHistory, refreshKey }) => {
               selectedId === item._id ? "selected" : ""
             }`}
           >
+            <div onClick={() => handleClick(item)}>
+              <p className="history-sql">{item.sql}</p>
+            </div>
+            
             {editingId === item._id ? (
               <div className="history-edit-form">
                 <textarea

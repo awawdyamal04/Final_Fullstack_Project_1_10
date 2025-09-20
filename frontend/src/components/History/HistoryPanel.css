@@ -175,6 +175,20 @@
   margin-bottom: 12px;
 }
 
+.history-prompt {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.history-sql {
+  font-size: 0.85rem;
+  color: #4b5563;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Clear All button */
 .clear-history-button {
   background: #fed7d7;        /* light red background */

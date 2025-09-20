@@ -6,6 +6,7 @@ import ExportButtons from "../components/Results/ExportButtons";
 import SqlActions from "../components/SQLView/SqlActions";
 import ResultsTable from "../components/Results/ResultsTable";
 import PromptInput from "../components/Terminal/PromptInput";
+import DownloadDbButton from "../components/Download/DownloadDbButton";
 
 const Home = () => {
   const [user, setUser] = useState(null);
@@ -93,7 +94,7 @@ const Home = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ sql: sqlQuery }),
+        body: JSON.stringify({ sql: sqlQuery, params: [], userID: user.userId, prompt }), // include userID and prompt
       });
 
       if (!response.ok) {
@@ -103,12 +104,15 @@ const Home = () => {
       const data = await response.json();
       setQueryResult(data.result);
       setActiveTab("results");
+      setHistoryRefreshKey(historyRefreshKey + 1);
 
+      /*
       // Save to history
       if (user) {
-        await saveToHistory(prompt, sqlQuery);
+        //await saveToHistory(prompt, sqlQuery);
         setHistoryRefreshKey((prev) => prev + 1);
       }
+        */
     } catch (err) {
       setError("Failed to execute query. Please check your SQL syntax, or upload DB.");
       console.error("Error:", err);
@@ -215,6 +219,7 @@ const Home = () => {
           <div className="uploader-section">
             <h2>Upload Your Database</h2>
             <FileUploader onFileSelect={setUploadedFile} />
+            <DownloadDbButton />
           </div>
           
           <div className="input-section">
@@ -256,7 +261,7 @@ const Home = () => {
                     <h3>Query Results</h3>
                     <ExportButtons onExport={exportResults} />
                   </div>
-                  <ResultsTable data={queryResult} />
+                  <ResultsTable results={queryResult} />
                 </div>
               )}
 
