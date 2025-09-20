@@ -10,14 +10,26 @@ export async function runQuery(sql, params = []) {
   if (!dbPath) throw new Error("No database loaded. Please upload a DB file first.");
 
   const db = await open({ filename: dbPath, driver: sqlite3.Database });
+  const results = [];
   try {
-    const trimmed = String(sql || "").trim().toLowerCase();
-    if (trimmed.startsWith("select")) {
-      return await db.all(sql, params);
-    } else {
-      const result = await db.run(sql, params);
-      return { changes: result.changes, lastID: result.lastID };
+    // Split queries by semicolon, filter out empty ones
+    const queries = sql
+      .split(";")
+      .map((q) => q.trim())
+      .filter((q) => q.length > 0);
+    
+    for (const query of queries) {
+      const trimmed = query.toLowerCase();
+      if (trimmed.startsWith("select")) {
+        const rows = await db.all(query, params);
+        results.push({ type: "select" ,query, rows });
+      } else {
+        const result = await db.run(query, params);
+        results.push({ type: "modify" ,query, changes: result.changes, lastID: result.lastID });
+      }
     }
+
+    return results;
   } finally {
     try { await db.close(); } catch (_) {}
   }

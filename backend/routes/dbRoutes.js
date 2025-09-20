@@ -1,6 +1,10 @@
 import express from "express";
-import multer from "multer";
-import { uploadDbFile, getDbSchema } from "../controllers/dbController.js";
+import {
+  uploadDbFile,
+  getDbSchema,
+  downloadDbFile,
+  resetDbFile,
+} from "../controllers/dbController.js";
 import {upload} from "../middleware/uploadConfig.js";
 
 const router = express.Router();
@@ -10,5 +14,11 @@ router.post("/upload", upload.single("dbfile"), uploadDbFile);
 
 // GET /api/db/schema
 router.get("/schema", getDbSchema);
+
+// GET /api/db/download
+router.get("/download", downloadDbFile);
+
+// POST /api/db/reset
+router.post("/reset", resetDbFile);
 
 export default router;

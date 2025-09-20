@@ -1,63 +1,97 @@
 .file-uploader {
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 1.5rem;
-    max-width: 500px;
-    margin: 1rem auto;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  }
-  
-  .upload-box {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .file-input {
-    border: 1px solid #d1d5db;
-    padding: 0.5rem;
-    border-radius: 6px;
-  }
-  
-  .file-name {
-    font-size: 0.9rem;
-    color: #374151;
-  }
-  
-  .upload-btn {
-    background: #2563eb;
-    color: #fff;
-    border: none;
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  
-  .upload-btn:hover {
-    background: #1d4ed8;
-  }
-  
-  .upload-btn:disabled {
-    background: #93c5fd;
-    cursor: not-allowed;
-  }
-  
-  .error-message {
-    margin-top: 1rem;
-    color: #b91c1c;
-    background: #fee2e2;
-    border: 1px solid #fecaca;
-    padding: 0.5rem;
-    border-radius: 6px;
-  }
-  
-  .success-message {
-    margin-top: 1rem;
-    color: #166534;
-    background: #dcfce7;
-    border: 1px solid #bbf7d0;
-    padding: 0.5rem;
-    border-radius: 6px;
-  }  
+  max-width: 400px;
+  margin: auto;
+  text-align: center;
+  font-family: "Inter", sans-serif;
+}
+
+.title {
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.upload-box {
+  border: 2px dashed #bbb;
+  padding: 2rem;
+  border-radius: 1rem;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: block;
+}
+
+.upload-box:hover {
+  border-color: #6366f1;
+  background: #f0f4ff;
+}
+
+.upload-icon {
+  width: 40px;
+  height: 40px;
+  color: #6366f1;
+  margin-bottom: 0.5rem;
+}
+
+.browse {
+  color: #6366f1;
+  text-decoration: underline;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-name {
+  margin-top: 0.8rem;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.upload-btn {
+  margin-top: 1rem;
+  background: #6366f1;
+  color: white;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 0.6rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.upload-btn:disabled {
+  background: #bbb;
+  cursor: not-allowed;
+}
+
+.upload-btn:hover:not(:disabled) {
+  background: #4f46e5;
+}
+
+/* Toast messages */
+.toast {
+  margin-top: 1rem;
+  padding: 0.7rem 1rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  justify-content: center;
+}
+
+.toast-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.toast.success {
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.toast.error {
+  background: #fef2f2;
+  color: #991b1b;
+}

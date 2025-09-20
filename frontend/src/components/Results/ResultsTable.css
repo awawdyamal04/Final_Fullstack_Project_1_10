@@ -1,0 +1,90 @@
+.results-table-container {
+  margin-top: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
+
+/* Tabs */
+.results-tabs {
+  display: flex;
+  border-bottom: 1px solid #ccc;
+  background: #f9f9f9;
+}
+
+.results-tabs button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.results-tabs button:hover {
+  background: #eee;
+}
+
+.results-tabs button.active {
+  background: #fff;
+  font-weight: bold;
+  border-bottom: 2px solid #007bff;
+}
+
+/* Results content */
+.results-content {
+  padding: 1rem;
+}
+
+/* Table */
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+
+.results-table th,
+.results-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.results-table th {
+  background: #f1f1f1;
+  font-weight: bold;
+}
+
+.results-table tr:nth-child(even) {
+  background: #fafafa;
+}
+
+/* Empty state */
+.empty-results {
+  padding: 1rem;
+  text-align: center;
+  color: #888;
+}
+
+/* Non-select result message */
+.non-select-result {
+  padding: 1rem;
+  background: #f9f9f9;
+  border: 1px dashed #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #444;
+}
+
+.query-label {
+  font-size: 13px;
+  margin-bottom: 0.5rem;
+  color: #555;
+  font-family: monospace;
+  background: #f4f4f4;
+  padding: 6px;
+  border-radius: 4px;
+}
