@@ -1,12 +1,25 @@
 import { getHistoryEntry, addHistoryEntry, updateHistoryEntry, deleteHistoryEntry, getAllHistory } from '../services/historyServices.js';
 
 export async function getHistory(req, res) {
+  if (req.user?.isGuest) {
+    return res.status(401).json({
+      code: "LOGIN_REQUIRED",
+      message: "Login to see history.",
+    });
+  }
   const history = await getAllHistory();
   res.status(200).json(history);
 }
 
 export async function getUserHistory(req, res) {
   try {
+    if (req.user?.isGuest) {
+      return res.status(401).json({
+        code: "LOGIN_REQUIRED",
+        message: "Login to see history.",
+      });
+    }
+    
     const { userID } = req.params;
     if (!userID) {
       return res.status(400).json({ error: "userID is required" });
@@ -19,6 +32,11 @@ export async function getUserHistory(req, res) {
 }
 
 export async function saveHistory(req, res) {
+    // אם אורח — לא שומרים היסטוריה. מריצים את השאילתא/פעולה כרגיל בצד שלך.
+    if (req.user?.isGuest) {
+        return res.status(204).send(); // "No Content" — לא נשמר
+    }
+
     const { userID, prompt, sql, save } = req.body;
     
     // Check if the save is one of the allowed values (boolean or undefined for default)

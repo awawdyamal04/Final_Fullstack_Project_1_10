@@ -31,7 +31,7 @@ const FileUploader = ({ onUploadSuccess, onFileSelect }) => {
     try {
       const formData = new FormData();
       formData.append("dbfile", selectedFile);
-
+      console.log(formData);
       const response = await fetch("http://localhost:3000/api/db/upload", {
         method: "POST",
         body: formData,
@@ -40,6 +40,7 @@ const FileUploader = ({ onUploadSuccess, onFileSelect }) => {
       if (!response.ok) throw new Error("Upload failed");
 
       const data = await response.json();
+      console.log(data);
       setMessage({ type: "success", text: "File uploaded successfully!" });
 
       if (onUploadSuccess) onUploadSuccess(data);
