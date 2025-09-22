@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Upload, CheckCircle, AlertCircle } from "lucide-react";
 import "./FileUploader.css";
 
-const FileUploader = ({ onUploadSuccess }) => {
+const FileUploader = ({ onUploadSuccess, onFileSelect }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -43,6 +43,7 @@ const FileUploader = ({ onUploadSuccess }) => {
       setMessage({ type: "success", text: "File uploaded successfully!" });
 
       if (onUploadSuccess) onUploadSuccess(data);
+      if (onFileSelect) onFileSelect(selectedFile);
 
       setTimeout(() => {
         setMessage({ type: "", text: "" });

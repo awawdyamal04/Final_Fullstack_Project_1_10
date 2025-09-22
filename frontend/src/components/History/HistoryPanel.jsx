@@ -11,6 +11,9 @@ const HistoryPanel = ({ userId, onSelectHistory, refreshKey }) => {
   const [editSql, setEditSql] = useState("");
   const [showConfirmClearAll, setShowConfirmClearAll] = useState(false);
   const [toast, setToast] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [explainModal, setExplainModal] = useState(null);
+
 
   const fetchHistory = async () => {
     setLoading(true);
@@ -116,6 +119,23 @@ const HistoryPanel = ({ userId, onSelectHistory, refreshKey }) => {
   const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000); // auto-hide after 3s
+  };
+
+  const handleExplain = async (sql) => {
+    try {
+      const res = await fetch("http://localhost:3000/api/ai/explain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql }),
+      });
+      if (!res.ok) throw new Error("Failed to explain SQL");
+      const data = await res.json();
+      const explanation = data.explanation || "No explanation available.";
+      setExplainModal(explanation);
+    } catch (err) {
+      setError(err.message);
+      showToast("Failed to explain SQL ❌", "error");
+    }
   };
 
   return (
@@ -254,30 +274,73 @@ const HistoryPanel = ({ userId, onSelectHistory, refreshKey }) => {
               >
                 <p className="history-prompt">{item.prompt}</p>
                 <div className="history-item-actions">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      startEditing(item);
-                    }}
-                    className="history-edit-button"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(item._id);
-                    }}
-                    className="history-delete-button"
-                  >
-                    Delete
-                  </button>
+                  <div className="history-action-menu">
+                    <button
+                      className="history-action-trigger"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenMenuId((prev) => (prev === item._id ? null : item._id));
+                      }}
+                    >
+                      Actions ▾
+                    </button>
+                    {openMenuId === item._id && (
+                      <div className="history-action-dropdown" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          className="history-action-item"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            startEditing(item);
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="history-action-item"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            handleExplain(item.sql);
+                          }}
+                        >
+                          Explain SQL
+                        </button>
+                        <button
+                          className="history-action-item danger"
+                          onClick={() => {
+                            setOpenMenuId(null);
+                            handleDelete(item._id);
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
           </li>
         ))}
       </ul>
+
+      {/* Modern modal for Explain SQL */}
+      {explainModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>SQL Explanation</h3>
+            <div className="modal-body">
+              <p>{explainModal}</p>
+            </div>
+            <button
+              className="modal-close"
+              onClick={() => setExplainModal(null)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

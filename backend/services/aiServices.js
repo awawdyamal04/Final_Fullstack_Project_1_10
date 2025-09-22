@@ -45,6 +45,7 @@ export async function generateSQL(prompt, schema) {
           content:
             "You are a translator that converts natural language into SQLite queries. Only output SQL." +
             "if the request doesn't make sense, respond with: ERROR: Unclear or invalid request '." +
+            "You can understand prompts in any language." +
             systemMessage,
         },
         { role: "user", content: prompt },
@@ -55,6 +56,43 @@ export async function generateSQL(prompt, schema) {
     return response.choices[0].message.content.trim();
   } catch (err) {
     console.error("OpenAI Error:", err);
+    throw err;
+  }
+}
+
+export async function explainSQL(sql, schema) {
+  let schemaContext = "";
+  if (schema) {
+    const schemaSummary = summarizeSchema(schema);
+    schemaContext =
+      "\nDatabase schema summary (for context):\n" +
+      JSON.stringify(schemaSummary) +
+      "\n";
+  }
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a helpful assistant that explains SQL queries clearly and concisely for non-experts. " +
+            "Keep the explanation under 250 words, use plain language, and, if useful, bullet points. " +
+            "Avoid speculation beyond what the query does." +
+            schemaContext,
+        },
+        {
+          role: "user",
+          content: `Explain what this SQL does:\n\n${sql}`,
+        },
+      ],
+      temperature: 0.2,
+    });
+
+    return response.choices[0].message.content.trim();
+  } catch (err) {
+    console.error("OpenAI Error (explainSQL):", err);
     throw err;
   }
 }
