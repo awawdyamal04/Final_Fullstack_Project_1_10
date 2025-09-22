@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import "./SchemaPanel.css";
 
-const SchemaPanel = () => {
+const SchemaPanel = ({ refreshKey }) => {
   const [schema, setSchema] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
-  const fetchSchema = async () => {
+  const fetchSchema = async (isAutoRefresh = false) => {
     setLoading(true);
     setError(null);
 
@@ -23,6 +24,7 @@ const SchemaPanel = () => {
       const data = await response.json();
       console.log(data);
       setSchema(data);
+      setLastUpdated(new Date());
     } catch (err) {
       setError(err.message);
     } finally {
@@ -31,8 +33,12 @@ const SchemaPanel = () => {
   };
 
   useEffect(() => {
-    fetchSchema();
-  }, []);
+    if (refreshKey > 0) {
+      fetchSchema(true); // Auto refresh when refreshKey changes
+    } else {
+      fetchSchema(false); // Initial load
+    }
+  }, [refreshKey]);
 
   const renderTable = (tableName, columns) => (
     <div key={tableName} className="schema-table">
@@ -53,10 +59,17 @@ const SchemaPanel = () => {
   return (
     <div className="schema-panel">
       <div className="schema-header">
-        <h2 className="schema-title">Database Schema</h2>
+        <div className="schema-title-section">
+          <h2 className="schema-title">Database Schema</h2>
+          {lastUpdated && (
+            <span className="last-updated">
+              Updated: {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+        </div>
         <button 
           className="refresh-schema-button"
-          onClick={fetchSchema}
+          onClick={() => fetchSchema(false)}
           disabled={loading}
         >
           {loading ? "Refreshing..." : "Refresh"}
@@ -65,15 +78,18 @@ const SchemaPanel = () => {
 
       {loading && <p className="schema-loading">Loading schema...</p>}
       
+      
       {error && (
         <div className="schema-error">
           <p>{error}</p>
-          <button onClick={fetchSchema} className="retry-button">
+          {/*
+          <button onClick={() => fetchSchema(false)} className="retry-button">
             Try Again
           </button>
+          */}
         </div>
       )}
-
+      
       {!loading && !error && !schema && (
         <p className="schema-empty">No schema available</p>
       )}

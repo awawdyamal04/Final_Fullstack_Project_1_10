@@ -21,6 +21,7 @@ const Home = () => {
   const [activeTab, setActiveTab] = useState("prompt");
   const [uploadedFile, setUploadedFile] = useState(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+  const [schemaRefreshKey, setSchemaRefreshKey] = useState(0);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
   const [activePanelTab, setActivePanelTab] = useState("history");
@@ -30,6 +31,13 @@ const Home = () => {
     setPrompt(item.prompt || "");
     setSqlQuery(item.sql || "");
     setActiveTab("sql");
+  };
+
+  // Handle file upload success and refresh schema
+  const handleFileUploadSuccess = (data) => {
+    setUploadedFile(data);
+    // Refresh schema when a new database is uploaded
+    setSchemaRefreshKey(prev => prev + 1);
   };
 
   // Check if user is logged in and clear any uploaded database
@@ -144,6 +152,15 @@ const Home = () => {
       setQueryResult(data.result);
       setActiveTab("results");
       setHistoryRefreshKey(historyRefreshKey + 1);
+      
+      // Check if the query was schema-modifying and refresh schema if needed
+      const schemaModifyingKeywords = ["CREATE", "DROP", "ALTER", "ADD", "MODIFY"];
+      const isSchemaModifying = schemaModifyingKeywords.some((kw) =>
+        sqlQuery.toUpperCase().includes(kw)
+      );
+      if (isSchemaModifying) {
+        setSchemaRefreshKey(prev => prev + 1);
+      }
     } catch (err) {
       setError(
         "Failed to execute query. Please check your SQL syntax, or upload DB."
@@ -251,7 +268,7 @@ const Home = () => {
           {/* File Uploader Section */}
           <div className="uploader-section">
             <h2>Upload Your Database</h2>
-            <FileUploader onFileSelect={setUploadedFile} />
+            <FileUploader onUploadSuccess={handleFileUploadSuccess} onFileSelect={setUploadedFile} />
             <DownloadDbButton />
           </div>
           
@@ -350,7 +367,7 @@ const Home = () => {
                   refreshKey={historyRefreshKey}
                 />
               )}
-              {activePanelTab === "schema" && <SchemaPanel />}
+              {activePanelTab === "schema" && <SchemaPanel refreshKey={schemaRefreshKey} />}
             </div>
           </div>
         </div>
