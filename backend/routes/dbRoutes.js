@@ -4,6 +4,7 @@ import {
   getDbSchema,
   downloadDbFile,
   resetDbFile,
+  clearDbFile,
 } from "../controllers/dbController.js";
 import {upload} from "../middleware/uploadConfig.js";
 
@@ -20,5 +21,8 @@ router.get("/download", downloadDbFile);
 
 // POST /api/db/reset
 router.post("/reset", resetDbFile);
+
+// DELETE /api/db/clear
+router.delete("/clear", clearDbFile);
 
 export default router;

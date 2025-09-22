@@ -19,8 +19,17 @@ export async function signup(req, res) {
     }
 
     const user = await addUser(firstName, lastName, email, password);
-    res.status(201).json(user);
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    });
   } catch (err) {
+    //console.log(req.body);
     res.status(500).json({ error: "Failed to signup" });
   }
 }

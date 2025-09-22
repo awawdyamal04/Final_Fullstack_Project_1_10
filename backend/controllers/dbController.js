@@ -114,3 +114,34 @@ export async function resetDbFile(req, res) {
     res.status(500).json({ error: err.message });
   }
 }
+
+// Clear/remove the current uploaded database
+export async function clearDbFile(req, res) {
+  try {
+    const currentDbPath = getCurrentDbPath();
+    if (!currentDbPath) {
+      return res.status(200).json({ message: "No database loaded" });
+    }
+
+    // Delete the current database file
+    if (fs.existsSync(currentDbPath)) {
+      fs.unlinkSync(currentDbPath);
+      console.log("Deleted current DB file:", currentDbPath);
+    }
+
+    // Delete the original copy if it exists
+    const originalCopyPath = currentDbPath.replace(/\.db$/, "_original.db");
+    if (fs.existsSync(originalCopyPath)) {
+      fs.unlinkSync(originalCopyPath);
+      console.log("Deleted original copy DB file:", originalCopyPath);
+    }
+
+    // Clear the database state
+    setCurrentDbPath(null);
+    setDbSchema(null);
+
+    res.json({ message: "Database cleared successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
