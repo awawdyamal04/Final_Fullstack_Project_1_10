@@ -33,6 +33,10 @@ const Login = () => {
         setIsLoading(false);
         return;
       }
+      
+      // remove the guest status before logging in
+      if (localStorage.getItem("auth")) localStorage.removeItem("auth");
+      if (localStorage.getItem("X_GUEST")) localStorage.removeItem("X_GUEST");
 
       // Call backend login API
       const response = await fetch("http://localhost:3000/api/users/login", {
