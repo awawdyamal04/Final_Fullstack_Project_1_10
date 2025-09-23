@@ -21,6 +21,14 @@ export async function loginUser(email, password) {
     // Check if password matches
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+        // If bcrypt comparison fails, check if it's a legacy plain text password
+        // This handles existing users who have plain text passwords
+        if (user.password === password) {
+            // Update the password to hashed version for future logins
+            const hashedPassword = await bcrypt.hash(password, 10);
+            await User.findByIdAndUpdate(user._id, { password: hashedPassword });
+            return user;
+        }
         return null;
     }
     

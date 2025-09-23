@@ -48,3 +48,4 @@ PORT=3000
 - Seamless integration with existing login system
 - Responsive Google login button
 - Error handling for OAuth failures
+
