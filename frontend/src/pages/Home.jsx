@@ -9,9 +9,11 @@ import ResultsTable from "../components/Results/ResultsTable";
 import PromptInput from "../components/Terminal/PromptInput";
 import DownloadDbButton from "../components/Download/DownloadDbButton";
 import ConfirmModal from "../components/ConfirmModal/ConfirmModal";
+import { getAuth } from "../auth";
 
 const Home = () => {
   const [user, setUser] = useState(null);
+  const [auth, setAuth] = useState(null);
   const [prompt, setPrompt] = useState("");
   const [sqlQuery, setSqlQuery] = useState("");
   const [queryResult, setQueryResult] = useState(null);
@@ -40,12 +42,20 @@ const Home = () => {
     setSchemaRefreshKey(prev => prev + 1);
   };
 
-  // Check if user is logged in and clear any uploaded database
+  // Check if user is logged in or guest and clear any uploaded database
   useEffect(() => {
-    const userData =
-      localStorage.getItem("user") || sessionStorage.getItem("user");
-    if (userData) {
-      setUser(JSON.parse(userData));
+    const authData = getAuth();
+    const userData = localStorage.getItem("user") || sessionStorage.getItem("user");
+    
+    if (authData.isGuest || userData) {
+      setAuth(authData);
+      
+      if (userData) {
+        setUser(JSON.parse(userData));
+      } else {
+        // Guest user
+        setUser({ isGuest: true });
+      }
       
       // Clear any uploaded database on page load/refresh
       clearUploadedDatabase();
@@ -69,6 +79,8 @@ const Home = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("auth");
+    localStorage.removeItem("X_GUEST");
     sessionStorage.removeItem("user");
     window.location.href = "#login";
   };
@@ -135,13 +147,20 @@ const Home = () => {
     setError("");
 
     try {
+      const headers = { "Content-Type": "application/json" };
+      
+      // Add X-Guest header if user is guest
+      if (auth?.isGuest) {
+        headers["X-Guest"] = "true";
+      }
+
       const response = await fetch("http://localhost:3000/api/queries/run", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           sql: sqlQuery,
           params: [],
-          userID: user.userId,
+          userID: user.userId || "guest",
           prompt,
         }),
       });
@@ -249,13 +268,18 @@ const Home = () => {
             <span>Natural Language to SQL</span>
           </div>
           <div className="user-info">
-          <span>
-            Welcome,{" "}
-            {user.firstName
-              ? `${user.firstName} ${user.lastName || ""}`
-              : user.email || user.userId}
-            !
-          </span>
+            {auth?.isGuest && (
+              <div className="badge">
+                🧪 Guest mode — history is disabled
+              </div>
+            )}
+            <span>
+              Welcome,{" "}
+              {user.firstName
+                ? `${user.firstName} ${user.lastName || ""}`
+                : user.email || user.userId || "Guest"}
+              !
+            </span>
             <button onClick={handleLogout} className="logout-btn">
               Logout
             </button>

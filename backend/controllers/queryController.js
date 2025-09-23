@@ -6,9 +6,14 @@ export async function handleRunQuery(req, res) {
     const { sql, params, userID, prompt } = req.body;
     if (!sql) return res.status(400).json({ error: "SQL query is required" });
 
+    // Check if user is guest
+    const isGuest = req.user?.isGuest;
+    
+    // Run query normally (no restrictions for guests in this implementation)
     const result = await runQuery(sql, params || []);
-    // Best-effort: save successful executions to history if userID provided
-    if (userID) {
+
+    // Best-effort: save successful executions to history if userID provided and not guest
+    if (userID && !isGuest) {
       const promptForHistory = prompt && String(prompt).trim().length > 0 ? prompt : sql;
       try {
         await addHistoryEntry(userID, promptForHistory, sql);
@@ -17,7 +22,11 @@ export async function handleRunQuery(req, res) {
       }
     }
 
-    res.json({ result });
+    res.json({ 
+      result, 
+      tryMode: isGuest, 
+      saved: !isGuest && !!userID 
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -90,6 +90,14 @@ const Login = () => {
     setShowForgotPassword(false);
   };
 
+  const handleGuest = () => {
+    // סימון מצב אורח באחסון מקומי
+    localStorage.setItem("auth", JSON.stringify({ isGuest: true }));
+    // אופציונלי: דגל גלובלי לזיהוי ב-axios
+    localStorage.setItem("X_GUEST", "1");
+    window.location.href = "#home"; // דף הבית/האפליקציה
+  };
+
   if (showForgotPassword) {
     return (
       <div className="login-page">
@@ -205,6 +213,23 @@ const Login = () => {
               )}
             </button>
           </form>
+
+          <div className="guest-section">
+            <div className="divider">
+              <span>or</span>
+            </div>
+            <button
+              type="button"
+              className="guest-button"
+              onClick={handleGuest}
+              disabled={isLoading}
+            >
+              Enter as Guest
+            </button>
+            <p className="hint">
+              🧪 Try mode: queries are not saved to history.
+            </p>
+          </div>
 
           <div className="login-footer">
             <p>
