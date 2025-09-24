@@ -6,15 +6,18 @@ import SchemaPanel from "../components/Schema/SchemaPanel";
 import ExportButtons from "../components/Results/ExportButtons";
 import SqlActions from "../components/SQLView/SqlActions";
 import ResultsTable from "../components/Results/ResultsTable";
-import PromptInput from "../components/Terminal/PromptInput";
+import TabbedPromptInput from "../components/Terminal/TabbedPromptInput";
 import DownloadDbButton from "../components/Download/DownloadDbButton";
 import ConfirmModal from "../components/ConfirmModal/ConfirmModal";
 import { getAuth } from "../auth";
 
 const Home = () => {
   const [user, setUser] = useState(null);
+  const [prompts, setPrompts] = useState({ 1: "" }); // Multiple prompts with IDs
+  const [activePromptId, setActivePromptId] = useState(1); // Currently active prompt tab
   const [auth, setAuth] = useState(null);
-  const [prompt, setPrompt] = useState("");
+  //const [prompt, setPrompt] = useState("");
+
   const [sqlQuery, setSqlQuery] = useState("");
   const [queryResult, setQueryResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +33,14 @@ const Home = () => {
 
   // ✅ Add this handler: populate prompt + sql when selecting history
   const handleSelectHistory = (item) => {
-    setPrompt(item.prompt || "");
+
+    if (!item) return;
+
+    // Set the current active prompt to the selected history item
+    setPrompts(prev => ({
+      ...prev,
+      [activePromptId]: item.prompt || ""
+    }));
     setSqlQuery(item.sql || "");
     setActiveTab("sql");
   };
@@ -85,8 +95,8 @@ const Home = () => {
     window.location.href = "#login";
   };
 
-  const generateSQL = async () => {
-    if (!prompt.trim()) {
+  const generateSQL = async (promptText, promptId) => {
+    if (!promptText.trim()) {
       setError("Please enter a prompt");
       return;
     }
@@ -101,7 +111,7 @@ const Home = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt: promptText }),
       });
 
       if (!response.ok) {
@@ -161,7 +171,7 @@ const Home = () => {
           sql: sqlQuery,
           params: [],
           userID: user.userId || "guest",
-          prompt,
+          prompt: prompts[activePromptId] || "",
         }),
       });
 
@@ -190,7 +200,7 @@ const Home = () => {
     }
   };
 
-  const saveToHistory = async (prompt, sql) => {
+  const saveToHistory = async (promptText, sql) => {
     try {
       const res = await fetch("http://localhost:3000/api/history", {
         method: "POST",
@@ -199,7 +209,7 @@ const Home = () => {
         },
         body: JSON.stringify({
           userID: user.userId,
-          prompt,
+          prompt: promptText,
           sql,
           save: true,
         }),
@@ -247,7 +257,11 @@ const Home = () => {
   };
 
   const clearAll = () => {
-    setPrompt("");
+    // Clear the current active prompt
+    setPrompts(prev => ({
+      ...prev,
+      [activePromptId]: ""
+    }));
     setSqlQuery("");
     setQueryResult(null);
     setError("");
@@ -297,7 +311,14 @@ const Home = () => {
           </div>
           
           <div className="input-section">
-            <PromptInput prompt={prompt} setPrompt={setPrompt} onGenerate={generateSQL} isLoading={isLoading} />
+            <TabbedPromptInput 
+              prompts={prompts}
+              setPrompts={setPrompts}
+              activePromptId={activePromptId}
+              setActivePromptId={setActivePromptId}
+              onGenerate={generateSQL}
+              isLoading={isLoading}
+            />
           </div>
 
           <div className="tabs-section">
