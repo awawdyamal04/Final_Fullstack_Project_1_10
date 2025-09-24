@@ -4,12 +4,17 @@ import historyRoutes from './backend/routes/historyRoutes.js';
 import dbRouter from "./backend/routes/dbRoutes.js";
 import dotenv from 'dotenv';
 import { connectDB, disconnectDB } from './backend/middleware/db.js';
-import { detectGuest } from './backend/middleware/auth.js';
 import userRoutes from "./backend/routes/userRoutes.js";
+import googleAuthRoutes from "./backend/routes/googleAuthRoutes.js";
+import { detectGuest } from './backend/middleware/auth.js';
 import express from 'express';
 import fs from "fs";
 import path from "path";
 import cors from "cors";
+import session from "express-session";
+import passport from "passport";
+import "./backend/config/passport.js";
+
 
 function cleanupUploads() {
   const uploadDir = path.join(process.cwd(), "uploads");
@@ -40,11 +45,30 @@ function cleanupUploads() {
 
 dotenv.config();
 const app = express();
+
+// Session configuration
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, // Set to true if using HTTPS
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(detectGuest);
+
+// Routes
 app.use('/api/users', userRoutes);
+app.use('/api/auth', googleAuthRoutes);
 app.use('/api/queries', queryRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/history', historyRoutes);
