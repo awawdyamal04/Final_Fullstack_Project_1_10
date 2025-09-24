@@ -118,9 +118,39 @@ const Login = () => {
 
   const handleForgotPasswordSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically send a reset email
-    alert("Password reset instructions have been sent to your email!");
-    setShowForgotPassword(false);
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const email = e.target.email.value;
+      
+      if (!email) {
+        setError("Please enter your email address");
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await fetch("http://localhost:3000/api/users/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert("Password reset instructions have been sent to your email!");
+        setShowForgotPassword(false);
+      } else {
+        setError(data.error || "Failed to send reset email. Please try again.");
+      }
+    } catch (err) {
+      setError("Network error. Please check your connection and try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -159,8 +189,21 @@ const Login = () => {
                 />
               </div>
 
-              <button type="submit" className="login-button">
-                Send Reset Instructions
+              {error && <div className="error-message">{error}</div>}
+
+              <button 
+                type="submit" 
+                className={`login-button ${isLoading ? "loading" : ""}`}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <span className="spinner"></span>
+                    Sending...
+                  </>
+                ) : (
+                  "Send Reset Instructions"
+                )}
               </button>
             </form>
 
