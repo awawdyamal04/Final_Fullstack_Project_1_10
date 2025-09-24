@@ -87,6 +87,49 @@
   font-size: 14px;
 }
 
+/* Password input container with toggle button */
+.password-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-container input {
+  padding-right: 50px; /* Make space for the toggle button */
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: #666;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle-btn:hover {
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.password-toggle-btn:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+.password-toggle-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
 .terms-agreement {
   display: flex;
   align-items: flex-start;
@@ -318,5 +361,14 @@
 
   .signup-footer p {
     color: #ccc;
+  }
+
+  .password-toggle-btn {
+    color: #ccc;
+  }
+
+  .password-toggle-btn:hover {
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.2);
   }
 }
