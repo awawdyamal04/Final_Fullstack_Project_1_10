@@ -2,14 +2,18 @@ import React, { useState, useEffect } from "react";
 import "./home.css";
 import FileUploader from "../components/Upload/FileUploader";
 import HistoryPanel from "../components/History/HistoryPanel";
+import SchemaPanel from "../components/Schema/SchemaPanel";
 import ExportButtons from "../components/Results/ExportButtons";
 import SqlActions from "../components/SQLView/SqlActions";
 import ResultsTable from "../components/Results/ResultsTable";
 import PromptInput from "../components/Terminal/PromptInput";
 import DownloadDbButton from "../components/Download/DownloadDbButton";
+import ConfirmModal from "../components/ConfirmModal/ConfirmModal";
+import { getAuth } from "../auth";
 
 const Home = () => {
   const [user, setUser] = useState(null);
+  const [auth, setAuth] = useState(null);
   const [prompt, setPrompt] = useState("");
   const [sqlQuery, setSqlQuery] = useState("");
   const [queryResult, setQueryResult] = useState(null);
@@ -19,6 +23,10 @@ const Home = () => {
   const [activeTab, setActiveTab] = useState("prompt");
   const [uploadedFile, setUploadedFile] = useState(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+  const [schemaRefreshKey, setSchemaRefreshKey] = useState(0);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
+  const [activePanelTab, setActivePanelTab] = useState("history");
 
   // ✅ Add this handler: populate prompt + sql when selecting history
   const handleSelectHistory = (item) => {
@@ -27,20 +35,52 @@ const Home = () => {
     setActiveTab("sql");
   };
 
-  // Check if user is logged in
+  // Handle file upload success and refresh schema
+  const handleFileUploadSuccess = (data) => {
+    setUploadedFile(data);
+    // Refresh schema when a new database is uploaded
+    setSchemaRefreshKey(prev => prev + 1);
+  };
+
+  // Check if user is logged in or guest and clear any uploaded database
   useEffect(() => {
-    const userData =
-      localStorage.getItem("user") || sessionStorage.getItem("user");
-    if (userData) {
-      setUser(JSON.parse(userData));
+    const authData = getAuth();
+    const userData = localStorage.getItem("user") || sessionStorage.getItem("user");
+    
+    if (authData.isGuest || userData) {
+      setAuth(authData);
+      
+      if (userData) {
+        setUser(JSON.parse(userData));
+      } else {
+        // Guest user
+        setUser({ isGuest: true });
+      }
+      
+      // Clear any uploaded database on page load/refresh
+      clearUploadedDatabase();
     } else {
       // Redirect to login if not authenticated
       window.location.href = "#login";
     }
   }, []);
 
+  // Function to clear uploaded database
+  const clearUploadedDatabase = async () => {
+    try {
+      await fetch("http://localhost:3000/api/db/clear", {
+        method: "DELETE",
+      });
+      console.log("Uploaded database cleared on page refresh");
+    } catch (err) {
+      console.error("Error clearing database:", err);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("auth");
+    localStorage.removeItem("X_GUEST");
     sessionStorage.removeItem("user");
     window.location.href = "#login";
   };
@@ -85,36 +125,65 @@ const Home = () => {
       return;
     }
 
+    // Detect destructive query
+    const destructiveKeywords = ["DROP", "DELETE", "TRUNCATE", "ALTER", "UPDATE"];
+    const isDestructive = destructiveKeywords.some((kw) =>
+      sqlQuery.toUpperCase().includes(kw)
+    );
+
+    if (isDestructive) {
+      // Open confirmation modal
+      setPendingAction(() => runQuery);
+      setIsConfirmOpen(true);
+      return;
+    }
+
+    // Otherwise run directly
+    await runQuery();
+  };
+
+  const runQuery = async () => {
     setIsLoading(true);
     setError("");
 
     try {
+      const headers = { "Content-Type": "application/json" };
+      
+      // Add X-Guest header if user is guest
+      if (auth?.isGuest) {
+        headers["X-Guest"] = "true";
+      }
+
       const response = await fetch("http://localhost:3000/api/queries/run", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ sql: sqlQuery, params: [], userID: user.userId, prompt }), // include userID and prompt
+        headers,
+        body: JSON.stringify({
+          sql: sqlQuery,
+          params: [],
+          userID: user.userId || "guest",
+          prompt,
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to execute query");
-      }
+      if (!response.ok) throw new Error("Failed to execute query");
 
       const data = await response.json();
       setQueryResult(data.result);
       setActiveTab("results");
       setHistoryRefreshKey(historyRefreshKey + 1);
-
-      /*
-      // Save to history
-      if (user) {
-        //await saveToHistory(prompt, sqlQuery);
-        setHistoryRefreshKey((prev) => prev + 1);
+      
+      // Check if the query was schema-modifying and refresh schema if needed
+      const schemaModifyingKeywords = ["CREATE", "DROP", "ALTER", "ADD", "MODIFY"];
+      const isSchemaModifying = schemaModifyingKeywords.some((kw) =>
+        sqlQuery.toUpperCase().includes(kw)
+      );
+      if (isSchemaModifying) {
+        setSchemaRefreshKey(prev => prev + 1);
       }
-        */
     } catch (err) {
-      setError("Failed to execute query. Please check your SQL syntax, or upload DB.");
+      setError(
+        "Failed to execute query. Please check your SQL syntax, or upload DB."
+      );
       console.error("Error:", err);
     } finally {
       setIsLoading(false);
@@ -199,13 +268,18 @@ const Home = () => {
             <span>Natural Language to SQL</span>
           </div>
           <div className="user-info">
-          <span>
-            Welcome,{" "}
-            {user.firstName
-              ? `${user.firstName} ${user.lastName || ""}`
-              : user.email || user.userId}
-            !
-          </span>
+            {auth?.isGuest && (
+              <div className="badge">
+                🧪 Guest mode — history is disabled
+              </div>
+            )}
+            <span>
+              Welcome,{" "}
+              {user.firstName
+                ? `${user.firstName} ${user.lastName || ""}`
+                : user.email || user.userId || "Guest"}
+              !
+            </span>
             <button onClick={handleLogout} className="logout-btn">
               Logout
             </button>
@@ -218,7 +292,7 @@ const Home = () => {
           {/* File Uploader Section */}
           <div className="uploader-section">
             <h2>Upload Your Database</h2>
-            <FileUploader onFileSelect={setUploadedFile} />
+            <FileUploader onUploadSuccess={handleFileUploadSuccess} onFileSelect={setUploadedFile} />
             <DownloadDbButton />
           </div>
           
@@ -250,6 +324,18 @@ const Home = () => {
                   <div className="sql-header">
                     <h3>Generated SQL Query</h3>
                     <SqlActions onExecute={executeQuery} onClear={clearAll} isLoading={isLoading} />
+
+                    {/* Confirmation Modal */}
+                    <ConfirmModal
+                      isOpen={isConfirmOpen}
+                      message="⚠️ This query may modify or delete data. Do you really want to proceed?"
+                      onConfirm={() => {
+                        setIsConfirmOpen(false);
+                        if (pendingAction) pendingAction();
+                      }}
+                      onCancel={() => setIsConfirmOpen(false)}
+                    />
+
                   </div>
                   <pre className="sql-code">{sqlQuery}</pre>
                 </div>
@@ -280,12 +366,34 @@ const Home = () => {
 
           {error && <div className="error-message">{error}</div>}
 
-          {/* ✅ HistoryPanel wired with handleSelectHistory */}
-          <HistoryPanel
-            userId={user?.userId}
-            onSelectHistory={handleSelectHistory}
-            refreshKey={historyRefreshKey}
-          />
+          {/* Panel Section with Tabs */}
+          <div className="panel-section">
+            <div className="panel-tabs">
+              <button
+                className={`panel-tab ${activePanelTab === "history" ? "active" : ""}`}
+                onClick={() => setActivePanelTab("history")}
+              >
+                History
+              </button>
+              <button
+                className={`panel-tab ${activePanelTab === "schema" ? "active" : ""}`}
+                onClick={() => setActivePanelTab("schema")}
+              >
+                Schema
+              </button>
+            </div>
+            
+            <div className="panel-content">
+              {activePanelTab === "history" && (
+                <HistoryPanel
+                  userId={user?.userId}
+                  onSelectHistory={handleSelectHistory}
+                  refreshKey={historyRefreshKey}
+                />
+              )}
+              {activePanelTab === "schema" && <SchemaPanel refreshKey={schemaRefreshKey} />}
+            </div>
+          </div>
         </div>
       </main>
     </div>

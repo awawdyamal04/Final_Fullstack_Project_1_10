@@ -62,6 +62,10 @@ const Login = () => {
         setIsLoading(false);
         return;
       }
+      
+      // remove the guest status before logging in
+      if (localStorage.getItem("auth")) localStorage.removeItem("auth");
+      if (localStorage.getItem("X_GUEST")) localStorage.removeItem("X_GUEST");
 
       // Call backend login API
       const response = await fetch("http://localhost:3000/api/users/login", {
@@ -123,6 +127,15 @@ const Login = () => {
     // Redirect to Google OAuth endpoint
     window.location.href = "http://localhost:3000/api/auth/google";
   };
+
+  const handleGuest = () => {
+    // סימון מצב אורח באחסון מקומי
+    localStorage.setItem("auth", JSON.stringify({ isGuest: true }));
+    // אופציונלי: דגל גלובלי לזיהוי ב-axios
+    localStorage.setItem("X_GUEST", "1");
+    window.location.href = "#home"; // דף הבית/האפליקציה
+  };
+
 
   if (showForgotPassword) {
     return (
@@ -259,6 +272,24 @@ const Login = () => {
             </svg>
             Continue with Google
           </button>
+
+          {/* Guest Login Section */}
+          <div className="guest-section">
+            <div className="divider">
+              <span>or</span>
+            </div>
+            <button
+              type="button"
+              className="guest-button"
+              onClick={handleGuest}
+              disabled={isLoading}
+            >
+              Enter as Guest
+            </button>
+            <p className="hint">
+              🧪 Try mode: queries are not saved to history.
+            </p>
+          </div>
 
           <div className="login-footer">
             <p>

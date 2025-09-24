@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { connectDB, disconnectDB } from './backend/middleware/db.js';
 import userRoutes from "./backend/routes/userRoutes.js";
 import googleAuthRoutes from "./backend/routes/googleAuthRoutes.js";
+import { detectGuest } from './backend/middleware/auth.js';
 import express from 'express';
 import fs from "fs";
 import path from "path";
@@ -13,6 +14,7 @@ import cors from "cors";
 import session from "express-session";
 import passport from "passport";
 import "./backend/config/passport.js";
+
 
 function cleanupUploads() {
   const uploadDir = path.join(process.cwd(), "uploads");
@@ -62,6 +64,7 @@ app.use(passport.session());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(detectGuest);
 
 // Routes
 app.use('/api/users', userRoutes);
