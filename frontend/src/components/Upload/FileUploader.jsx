@@ -31,7 +31,6 @@ const FileUploader = ({ onUploadSuccess, onFileSelect }) => {
     try {
       const formData = new FormData();
       formData.append("dbfile", selectedFile);
-
       const response = await fetch("http://localhost:3000/api/db/upload", {
         method: "POST",
         body: formData,
