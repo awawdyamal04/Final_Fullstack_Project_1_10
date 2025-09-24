@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import queryRoutes from './backend/routes/queryRoutes.js';
 import aiRoutes from './backend/routes/aiRoutes.js';
 import historyRoutes from './backend/routes/historyRoutes.js';
@@ -14,7 +13,8 @@ import cors from "cors";
 import session from "express-session";
 import passport from "passport";
 import "./backend/config/passport.js";
-
+import dotenv from 'dotenv';
+dotenv.config();
 
 function cleanupUploads() {
   const uploadDir = path.join(process.cwd(), "uploads");
@@ -44,7 +44,7 @@ function cleanupUploads() {
 }
 
 // Environment variables logging
-console.log('[env] MONGODB_URI exists:', !!process.env.MONGODB_URI);
+console.log('[env] MONGO_URI exists:', !!process.env.MONGO_URI);
 console.log('[env] EMAIL_USER exists:', !!process.env.EMAIL_USER);
 console.log('[env] PORT:', process.env.PORT || 3000);
 

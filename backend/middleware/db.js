@@ -1,13 +1,15 @@
 import mongoose from 'mongoose';
+import dotenv from "dotenv";
+dotenv.config();
+const mongoURI = process.env.MONGO_URI;
 
 export async function connectDB() {
-  const uri = process.env.MONGODB_URI;
-  if (!uri) {
+  if (!mongoURI) {
     throw new Error('Missing MONGODB_URI in .env');
   }
   
   try {
-    await mongoose.connect(uri, { 
+    await mongoose.connect(mongoURI, { 
       serverSelectionTimeoutMS: 10000,
       maxPoolSize: 10,
       socketTimeoutMS: 45000,
