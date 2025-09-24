@@ -1,8 +1,8 @@
+import 'dotenv/config';
 import queryRoutes from './backend/routes/queryRoutes.js';
 import aiRoutes from './backend/routes/aiRoutes.js';
 import historyRoutes from './backend/routes/historyRoutes.js';
 import dbRouter from "./backend/routes/dbRoutes.js";
-import dotenv from 'dotenv';
 import { connectDB, disconnectDB } from './backend/middleware/db.js';
 import userRoutes from "./backend/routes/userRoutes.js";
 import googleAuthRoutes from "./backend/routes/googleAuthRoutes.js";
@@ -43,7 +43,11 @@ function cleanupUploads() {
   }
 }
 
-dotenv.config();
+// Environment variables logging
+console.log('[env] MONGODB_URI exists:', !!process.env.MONGODB_URI);
+console.log('[env] EMAIL_USER exists:', !!process.env.EMAIL_USER);
+console.log('[env] PORT:', process.env.PORT || 3000);
+
 const app = express();
 
 // Session configuration
@@ -75,7 +79,10 @@ app.use('/api/history', historyRoutes);
 app.use("/api/db", dbRouter);
 
 // Connect to the database when the server starts
-connectDB();
+connectDB().catch(err => {
+  console.error('❌ Failed to connect to MongoDB:', err.message);
+  process.exit(1);
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
