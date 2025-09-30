@@ -1,47 +1,50 @@
-import React, { useState, useEffect } from 'react'
-import Login from './pages/Login'
-import Signup from './pages/Signup'
-import Home from './pages/Home'
+import React, { useState, useEffect } from "react";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Home from "./pages/Home";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
+  const [currentPage, setCurrentPage] = useState("login");
+  const [resetToken, setResetToken] = useState(null);
 
-  const [currentPage, setCurrentPage] = useState('login')
-
-  // Simple routing based on URL hash
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash.slice(1) || 'login'
-      setCurrentPage(hash)
-    }
+      const hash = window.location.hash.slice(1) || "login";
 
-    // Set initial page
-    handleHashChange()
+      if (hash.startsWith("reset-password/")) {
+        const token = hash.split("/")[1];
+        setCurrentPage("reset-password");
+        setResetToken(token);
+      } else {
+        setCurrentPage(hash);
+        setResetToken(null);
+      }
+    };
 
-    // Listen for hash changes
-    window.addEventListener('hashchange', handleHashChange)
+    handleHashChange();
+    window.addEventListener("hashchange", handleHashChange);
 
     return () => {
-      window.removeEventListener('hashchange', handleHashChange)
-    }
-  }, [])
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  }, []);
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'signup':
-        return <Signup />
-      case 'home':
-        return <Home />
-      case 'login':
+      case "signup":
+        return <Signup />;
+      case "home":
+        return <Home />;
+      case "reset-password":
+        return <ResetPassword token={resetToken} />;
+      case "login":
       default:
-        return <Login />
+        return <Login />;
     }
-  }
+  };
 
-  return (
-    <div className="App">
-      {renderPage()}
-    </div>
-  )
+  return <div className="App">{renderPage()}</div>;
 }
 
-export default App
+export default App;
