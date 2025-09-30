@@ -1,24 +1,26 @@
 .file-uploader {
-  max-width: 400px;
+  max-width: 25vw;
+  min-width: 200px;
   margin: auto;
   text-align: center;
   font-family: "Inter", sans-serif;
 }
 
 .title {
-  font-size: 1.4rem;
+  font-size: clamp(1rem, 2vw, 1.4rem);
   margin-bottom: 1rem;
   font-weight: 600;
 }
 
 .upload-box {
   border: 2px dashed #bbb;
-  padding: 2rem;
+  padding: 1.5rem;
   border-radius: 1rem;
   background: #fafafa;
   cursor: pointer;
   transition: all 0.3s ease;
   display: block;
+  min-height: 8vh;
 }
 
 .upload-box:hover {
@@ -27,8 +29,8 @@
 }
 
 .upload-icon {
-  width: 40px;
-  height: 40px;
+  width: clamp(30px, 4vw, 40px);
+  height: clamp(30px, 4vw, 40px);
   color: #6366f1;
   margin-bottom: 0.5rem;
 }
@@ -44,7 +46,7 @@
 
 .file-name {
   margin-top: 0.8rem;
-  font-size: 0.95rem;
+  font-size: clamp(0.8rem, 1.2vw, 0.95rem);
   color: #333;
 }
 
@@ -55,7 +57,7 @@
   border: none;
   padding: 0.7rem 1.5rem;
   border-radius: 0.6rem;
-  font-size: 1rem;
+  font-size: clamp(0.8rem, 1.2vw, 1rem);
   cursor: pointer;
   transition: background 0.3s ease;
 }
@@ -77,13 +79,13 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.95rem;
+  font-size: clamp(0.8rem, 1.2vw, 0.95rem);
   justify-content: center;
 }
 
 .toast-icon {
-  width: 18px;
-  height: 18px;
+  width: clamp(14px, 2vw, 18px);
+  height: clamp(14px, 2vw, 18px);
 }
 
 .toast.success {

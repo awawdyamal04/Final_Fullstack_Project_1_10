@@ -10,6 +10,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // 👀 Blink effect state
   const [isBlinking, setIsBlinking] = useState(false);
@@ -191,7 +192,24 @@ const Login = () => {
             </div>
             <div className="form-group">
               <label htmlFor="password">Password</label>
-              <input type="password" id="password" name="password" placeholder="Enter your password" value={formData.password} onChange={handleChange} required />
+              <div className="password-input-wrapper">
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  id="password" 
+                  name="password" 
+                  placeholder="Enter your password" 
+                  value={formData.password} 
+                  onChange={handleChange} 
+                  required 
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
             </div>
             <div className="form-options">
               <div className="remember-me">

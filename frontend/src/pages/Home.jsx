@@ -21,6 +21,26 @@ const Home = () => {
   const [displayedSql, setDisplayedSql] = useState("");
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  
+  // Blinking grandma effect
+  const [grandmaImageIndex, setGrandmaImageIndex] = useState(0);
+  const grandmaImages = [
+    "/assets/secretary-desk.png",
+    "/assets/secretary-desk-2.png", 
+    "/assets/secretary-desk-3.png",
+    "/assets/secretary-desk-4.png",
+    "/assets/secretary-desk-5.png",
+    "/assets/secretary-desk-6.png"
+  ];
+
+  // Blinking grandma effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setGrandmaImageIndex((prevIndex) => (prevIndex + 1) % grandmaImages.length);
+    }, 2000); // Change image every 2 seconds
+    
+    return () => clearInterval(interval);
+  }, [grandmaImages.length]);
 
   // Typing effect for SQL
   useEffect(() => {
@@ -184,7 +204,7 @@ const Home = () => {
           {/* LEFT SIDE */}
           <div className="left-panel">
             <img
-              src="/assets/secretary-desk.png"
+              src={grandmaImages[grandmaImageIndex]}
               alt="Grandma"
               className="grandma-img"
             />

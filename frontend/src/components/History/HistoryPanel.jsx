@@ -11,6 +11,8 @@ const HistoryPanel = ({ userId, onSelectHistory, refreshKey }) => {
   const [editSql, setEditSql] = useState("");
   const [showConfirmClearAll, setShowConfirmClearAll] = useState(false);
   const [toast, setToast] = useState(null);
+  const [explanation, setExplanation] = useState(null);
+  const [explainingId, setExplainingId] = useState(null);
 
   const fetchHistory = async () => {
     setLoading(true);
@@ -116,6 +118,31 @@ const HistoryPanel = ({ userId, onSelectHistory, refreshKey }) => {
   const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000); // auto-hide after 3s
+  };
+
+  const explainSQL = async (sql, itemId) => {
+    try {
+      setExplainingId(itemId);
+      const res = await fetch("http://localhost:3000/api/ai/explain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql }),
+      });
+      
+      if (!res.ok) throw new Error("Failed to get explanation");
+      
+      const data = await res.json();
+      setExplanation({ id: itemId, explanation: data.explanation });
+    } catch (err) {
+      setError(err.message);
+      showToast("Failed to get SQL explanation ❌", "error");
+    } finally {
+      setExplainingId(null);
+    }
+  };
+
+  const closeExplanation = () => {
+    setExplanation(null);
   };
 
   return (
@@ -257,6 +284,17 @@ const HistoryPanel = ({ userId, onSelectHistory, refreshKey }) => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      explainSQL(item.sql, item._id);
+                    }}
+                    className="history-explain-button"
+                    title="Explain SQL"
+                    disabled={explainingId === item._id}
+                  >
+                    {explainingId === item._id ? "..." : "?"}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
                       startEditing(item);
                     }}
                     className="history-edit-button"
@@ -278,6 +316,32 @@ const HistoryPanel = ({ userId, onSelectHistory, refreshKey }) => {
           </li>
         ))}
       </ul>
+
+      {/* SQL Explanation Modal */}
+      {explanation && (
+        <div className="explanation-overlay">
+          <div className="explanation-modal">
+            <div className="explanation-header">
+              <h3>SQL Explanation</h3>
+              <button
+                className="explanation-close-button"
+                onClick={closeExplanation}
+              >
+                ×
+              </button>
+            </div>
+            <div className="explanation-content">
+              <p>{explanation.explanation}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className={`toast ${toast.type}`}>
+          <p>{toast.message}</p>
+        </div>
+      )}
     </div>
   );
 };

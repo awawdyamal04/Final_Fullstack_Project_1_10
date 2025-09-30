@@ -5,6 +5,36 @@ import "./home.css";
 const Landing = () => {
   const goToLogin = () => { window.location.hash = "login"; };
   const goToSignup = () => { window.location.hash = "signup"; };
+  
+  const enterAsGuest = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/api/auth/guest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // Store guest token and user info
+      const guestUser = {
+        userId: data.token,
+        role: "guest",
+        trial: true,
+        isGuest: true
+      };
+      
+      localStorage.setItem("user", JSON.stringify(guestUser));
+      window.location.hash = "home";
+    } catch (error) {
+      console.error("Guest authentication failed:", error);
+      alert(`Failed to enter as guest: ${error.message}`);
+    }
+  };
 
   return (
     <div className="home-page" style={{ background: "#261c0d", minHeight: "100vh" }}>
@@ -75,7 +105,7 @@ const Landing = () => {
             <button
               className="logout-btn"
               style={{ background: "#8b0000" }}
-              onClick={() => (window.location.hash = "home")}
+              onClick={enterAsGuest}
             >
               not your business (enter as a guest)
             </button>

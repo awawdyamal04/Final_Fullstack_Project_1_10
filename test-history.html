@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test History Panel</title>
+    <style>
+        .history-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .history-item-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .history-explain-button {
+            background: #e6fffa;
+            color: #0d9488;
+            border: 1px solid #5eead4;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .history-explain-button:hover {
+            background: #5eead4;
+            color: white;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>Test History Panel Question Mark Button</h1>
+    
+    <div class="history-item">
+        <p><strong>Prompt:</strong> Show me all users</p>
+        <p><strong>SQL:</strong> SELECT * FROM users;</p>
+        <div class="history-item-actions">
+            <button class="history-explain-button" title="Explain SQL" onclick="alert('Question mark button is working!')">
+                ?
+            </button>
+            <button>Edit</button>
+            <button>Delete</button>
+        </div>
+    </div>
+    
+    <div class="history-item">
+        <p><strong>Prompt:</strong> Get products with price > 100</p>
+        <p><strong>SQL:</strong> SELECT * FROM products WHERE price > 100;</p>
+        <div class="history-item-actions">
+            <button class="history-explain-button" title="Explain SQL" onclick="alert('Question mark button is working!')">
+                ?
+            </button>
+            <button>Edit</button>
+            <button>Delete</button>
+        </div>
+    </div>
+    
+    <p><strong>Note:</strong> The question mark button should be visible and clickable. If you can see it here, the issue might be with the server or frontend not running properly.</p>
+</body>
+</html>
