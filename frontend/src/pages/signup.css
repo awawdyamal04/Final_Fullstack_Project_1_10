@@ -4,43 +4,59 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #ff9f1c, #ffbf69); /* warm orange-yellow gradient */
+  padding: 0;
+  font-family: 'Comic Sans MS', 'Poppins', cursive, sans-serif;
+  position: relative;
 }
 
+/* Happy illustration in corner */
+.happy-illustration {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 180px;   /* small size */
+  height: auto;
+  z-index: 0;
+}
+
+.happy-illustration img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Longer signup container */
 .signup-container {
   width: 100%;
-  max-width: 500px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  max-width: 480px;
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 0 #b3541e, 0 0 0 4px #b3541e inset; /* warm brown frame */
   overflow: hidden;
+  margin: 40px auto;
+  max-height: 900px; /* longer frame */
+  z-index: 1; /* keep above the illustration */
 }
 
 .signup-form {
-  padding: 40px 30px;
+  padding: 35px 25px;
 }
 
 .signup-header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
 }
 
 .signup-header h1 {
-  color: #333;
+  color: #d62828; /* red, like heart glasses */
   font-size: 28px;
   font-weight: 700;
   margin: 0 0 8px 0;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .signup-header p {
-  color: #666;
+  color: #444;
   font-size: 14px;
   margin: 0;
 }
@@ -49,11 +65,11 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 15px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .form-group label {
@@ -61,7 +77,7 @@
   color: #333;
   font-size: 14px;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .form-group input {
@@ -77,8 +93,8 @@
 
 .form-group input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #ff4d00;
+  box-shadow: 0 0 0 3px rgba(255, 77, 0, 0.2);
   transform: translateY(-1px);
 }
 
@@ -87,58 +103,15 @@
   font-size: 14px;
 }
 
-/* Password input container with toggle button */
-.password-input-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.password-input-container input {
-  padding-right: 50px; /* Make space for the toggle button */
-}
-
-.password-toggle-btn {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  color: #666;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.password-toggle-btn:hover {
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.1);
-}
-
-.password-toggle-btn:focus {
-  outline: 2px solid #667eea;
-  outline-offset: 2px;
-}
-
-.password-toggle-btn svg {
-  width: 20px;
-  height: 20px;
-}
-
 .terms-agreement {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   margin-bottom: 20px;
-  padding: 15px;
-  background: rgba(102, 126, 234, 0.05);
+  padding: 12px;
+  background: rgba(255, 159, 28, 0.1);
   border-radius: 10px;
-  border: 1px solid rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(255, 159, 28, 0.3);
 }
 
 .terms-agreement input[type="checkbox"] {
@@ -146,13 +119,13 @@
   height: 18px;
   margin: 0;
   cursor: pointer;
-  accent-color: #667eea;
+  accent-color: #ff4d00;
   flex-shrink: 0;
   margin-top: 2px;
 }
 
 .terms-agreement label {
-  color: #666;
+  color: #444;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -162,14 +135,14 @@
 }
 
 .terms-agreement a {
-  color: #667eea;
+  color: #ff4d00;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.3s ease;
 }
 
 .terms-agreement a:hover {
-  color: #764ba2;
+  color: #d62828;
   text-decoration: underline;
 }
 
@@ -179,7 +152,7 @@
   padding: 12px 16px;
   border-radius: 8px;
   font-size: 14px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   border-left: 4px solid #c33;
   animation: shake 0.5s ease-in-out;
 }
@@ -190,7 +163,7 @@
   padding: 12px 16px;
   border-radius: 8px;
   font-size: 14px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   border-left: 4px solid #3c3;
   animation: slideIn 0.5s ease-in-out;
 }
@@ -209,7 +182,7 @@
 .signup-button {
   width: 100%;
   padding: 14px 20px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: #ff4d00;
   color: white;
   border: none;
   border-radius: 10px;
@@ -225,8 +198,9 @@
 }
 
 .signup-button:hover:not(:disabled) {
+  background: #d62828;
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 10px 20px rgba(214, 40, 40, 0.35);
 }
 
 .signup-button:active:not(:disabled) {
@@ -263,20 +237,20 @@
 }
 
 .signup-footer p {
-  color: #666;
+  color: #444;
   font-size: 14px;
   margin: 0;
 }
 
 .signup-footer a {
-  color: #667eea;
+  color: #ff4d00;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.3s ease;
 }
 
 .signup-footer a:hover {
-  color: #764ba2;
+  color: #d62828;
   text-decoration: underline;
 }
 
@@ -287,7 +261,7 @@
   }
 
   .signup-form {
-    padding: 30px 20px;
+    padding: 25px 18px;
   }
 
   .signup-header h1 {
@@ -310,11 +284,15 @@
   }
 
   .terms-agreement {
-    padding: 12px;
+    padding: 10px;
   }
 
   .terms-agreement label {
     font-size: 13px;
+  }
+
+  .happy-illustration {
+    display: none; /* hide image on very small screens */
   }
 }
 
@@ -343,7 +321,7 @@
   }
 
   .form-group input:focus {
-    border-color: #667eea;
+    border-color: #ff4d00;
   }
 
   .form-group input::placeholder {
@@ -351,8 +329,8 @@
   }
 
   .terms-agreement {
-    background: rgba(102, 126, 234, 0.1);
-    border-color: rgba(102, 126, 234, 0.2);
+    background: rgba(255, 159, 28, 0.1);
+    border-color: rgba(255, 159, 28, 0.2);
   }
 
   .terms-agreement label {
@@ -363,12 +341,115 @@
     color: #ccc;
   }
 
-  .password-toggle-btn {
-    color: #ccc;
+  .signup-footer a {
+    color: #ff4d00;
   }
 
-  .password-toggle-btn:hover {
-    color: #667eea;
-    background: rgba(102, 126, 234, 0.2);
+  .signup-footer a:hover {
+    color: #d62828;
   }
+}
+/* Terms Modal */
+.terms-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.terms-modal-content {
+  background: #fff8f0;
+  padding: 25px;
+  border-radius: 15px;
+  max-width: 600px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.terms-modal-content h2 {
+  color: #d62828;
+  margin-bottom: 12px;
+}
+
+.terms-modal-content p {
+  color: #444;
+  font-size: 14px;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+/* Terms images grid */
+.terms-images {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.terms-images img {
+  max-width: 80%;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+
+/* Close button */
+.close-modal {
+  background: #ff4d00;
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.3s ease;
+}
+
+.close-modal:hover {
+  background: #d62828;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Keep lady illustration */
+.happy-illustration {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 7cm;
+  height: auto;
+  z-index: 0;
+}
+
+.happy-illustration img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Terms animated scene */
+.terms-scene {
+  margin: 15px 0;
+}
+
+.terms-scene img {
+  width: 100%;
+  max-height: 200px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }

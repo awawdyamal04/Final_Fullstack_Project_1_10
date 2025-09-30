@@ -1,17 +1,18 @@
 .results-table-container {
   margin-top: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid #00ff00;
+  border-radius: 6px;
+  background: #000;
   overflow: hidden;
-  font-family: Arial, sans-serif;
+  font-family: "Courier New", monospace;
+  color: #00ff00;
 }
 
 /* Tabs */
 .results-tabs {
   display: flex;
-  border-bottom: 1px solid #ccc;
-  background: #f9f9f9;
+  border-bottom: 1px solid #00ff00;
+  background: #111;
 }
 
 .results-tabs button {
@@ -22,69 +23,94 @@
   cursor: pointer;
   font-size: 14px;
   transition: background 0.2s;
+  color: #00ff00;
+  font-family: "Courier New", monospace;
 }
 
 .results-tabs button:hover {
-  background: #eee;
+  background: #222;
 }
 
 .results-tabs button.active {
-  background: #fff;
+  background: #333;
   font-weight: bold;
-  border-bottom: 2px solid #007bff;
+  border-bottom: 2px solid #00ff00;
 }
 
 /* Results content */
 .results-content {
-  padding: 1rem;
+  padding: 0.5rem;
+  background: #000;
+  color: #00ff00;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 /* Table */
 .results-table {
   width: 100%;
+  max-width: 100%;
   border-collapse: collapse;
   margin-top: 0.5rem;
+  font-family: "Courier New", monospace;
+  font-size: 0.7rem;
+  table-layout: fixed;
 }
 
 .results-table th,
 .results-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
+  border: 1px solid #00ff00;
+  padding: 4px;
   text-align: left;
+  color: #00ff00;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 150px;
 }
 
 .results-table th {
-  background: #f1f1f1;
+  background: #111;
   font-weight: bold;
+  color: #00ff00;
 }
 
 .results-table tr:nth-child(even) {
-  background: #fafafa;
+  background: #111;
+}
+
+.results-table tr:hover {
+  background: #222;
 }
 
 /* Empty state */
 .empty-results {
   padding: 1rem;
   text-align: center;
-  color: #888;
+  color: #00ff00;
+  font-family: "Courier New", monospace;
 }
 
 /* Non-select result message */
 .non-select-result {
   padding: 1rem;
-  background: #f9f9f9;
-  border: 1px dashed #ccc;
+  background: #111;
+  border: 1px dashed #00ff00;
   border-radius: 6px;
   font-size: 14px;
-  color: #444;
+  color: #00ff00;
+  font-family: "Courier New", monospace;
 }
 
 .query-label {
-  font-size: 13px;
+  font-size: 11px;
   margin-bottom: 0.5rem;
-  color: #555;
-  font-family: monospace;
-  background: #f4f4f4;
-  padding: 6px;
+  color: #00ff00;
+  font-family: "Courier New", monospace;
+  background: #111;
+  padding: 4px;
   border-radius: 4px;
+  border: 1px solid #00ff00;
+  word-break: break-all;
+  max-width: 100%;
 }

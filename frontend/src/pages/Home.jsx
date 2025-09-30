@@ -2,102 +2,65 @@ import React, { useState, useEffect } from "react";
 import "./home.css";
 import FileUploader from "../components/Upload/FileUploader";
 import HistoryPanel from "../components/History/HistoryPanel";
-import SchemaPanel from "../components/Schema/SchemaPanel";
 import ExportButtons from "../components/Results/ExportButtons";
 import SqlActions from "../components/SQLView/SqlActions";
 import ResultsTable from "../components/Results/ResultsTable";
-import TabbedPromptInput from "../components/Terminal/TabbedPromptInput";
+import PromptInput from "../components/Terminal/PromptInput";
 import DownloadDbButton from "../components/Download/DownloadDbButton";
-import ConfirmModal from "../components/ConfirmModal/ConfirmModal";
-import { getAuth } from "../auth";
 
 const Home = () => {
   const [user, setUser] = useState(null);
-  const [prompts, setPrompts] = useState({ 1: "" }); // Multiple prompts with IDs
-  const [activePromptId, setActivePromptId] = useState(1); // Currently active prompt tab
-  const [auth, setAuth] = useState(null);
-  //const [prompt, setPrompt] = useState("");
-
+  const [prompt, setPrompt] = useState("");
   const [sqlQuery, setSqlQuery] = useState("");
   const [queryResult, setQueryResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [history, setHistory] = useState([]);
-  const [activeTab, setActiveTab] = useState("prompt");
+  const [activeTab, setActiveTab] = useState("sql");
   const [uploadedFile, setUploadedFile] = useState(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
-  const [schemaRefreshKey, setSchemaRefreshKey] = useState(0);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [pendingAction, setPendingAction] = useState(null);
-  const [activePanelTab, setActivePanelTab] = useState("history");
+  const [displayedSql, setDisplayedSql] = useState("");
+  const [historyExpanded, setHistoryExpanded] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
 
-  // ✅ Add this handler: populate prompt + sql when selecting history
-  const handleSelectHistory = (item) => {
-
-    if (!item) return;
-
-    // Set the current active prompt to the selected history item
-    setPrompts(prev => ({
-      ...prev,
-      [activePromptId]: item.prompt || ""
-    }));
-    setSqlQuery(item.sql || "");
-    setActiveTab("sql");
-  };
-
-  // Handle file upload success and refresh schema
-  const handleFileUploadSuccess = (data) => {
-    setUploadedFile(data);
-    // Refresh schema when a new database is uploaded
-    setSchemaRefreshKey(prev => prev + 1);
-  };
-
-  // Check if user is logged in or guest and clear any uploaded database
+  // Typing effect for SQL
   useEffect(() => {
-    const authData = getAuth();
-    const userData = localStorage.getItem("user") || sessionStorage.getItem("user");
-    
-    if (authData.isGuest || userData) {
-      setAuth(authData);
-      
-      if (userData) {
-        setUser(JSON.parse(userData));
-      } else {
-        // Guest user
-        setUser({ isGuest: true });
-      }
-      
-      // Clear any uploaded database on page load/refresh
-      clearUploadedDatabase();
+    if (!sqlQuery) {
+      setDisplayedSql("");
+      return;
+    }
+    setDisplayedSql("");
+    let i = 0;
+    const interval = setInterval(() => {
+      setDisplayedSql((prev) => prev + sqlQuery.charAt(i));
+      i++;
+      if (i >= sqlQuery.length) clearInterval(interval);
+    }, 30);
+    return () => clearInterval(interval);
+  }, [sqlQuery]);
+
+  // Check login
+  useEffect(() => {
+    const userData =
+      localStorage.getItem("user") || sessionStorage.getItem("user");
+    if (userData) {
+      setUser(JSON.parse(userData));
     } else {
-      // Redirect to login if not authenticated
       window.location.href = "#login";
     }
   }, []);
 
-  // Function to clear uploaded database
-  const clearUploadedDatabase = async () => {
-    try {
-      await fetch("http://localhost:3000/api/db/clear", {
-        method: "DELETE",
-      });
-      console.log("Uploaded database cleared on page refresh");
-    } catch (err) {
-      console.error("Error clearing database:", err);
-    }
-  };
-
   const handleLogout = () => {
     localStorage.removeItem("user");
-    localStorage.removeItem("auth");
-    localStorage.removeItem("X_GUEST");
     sessionStorage.removeItem("user");
     window.location.href = "#login";
   };
 
-  const generateSQL = async (promptText, promptId) => {
-    if (!promptText.trim()) {
-      setError("Please enter a prompt");
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.name.endsWith(".db")) {
+      setError("Only .db files are allowed");
       return;
     }
 
@@ -105,25 +68,56 @@ const Home = () => {
     setError("");
 
     try {
-      // Call your AI service to generate SQL
-      const response = await fetch("http://localhost:3000/api/ai/generate", {
+      const formData = new FormData();
+      formData.append("dbfile", file);
+
+      const response = await fetch("http://localhost:3000/api/db/upload", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt: promptText }),
+        body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to generate SQL");
-      }
+      if (!response.ok) throw new Error("Upload failed");
+
+      const data = await response.json();
+      setUploadedFile(file);
+      setUploadSuccess(true);
+      setError(""); // Clear any previous errors
+      console.log("Database uploaded successfully:", data);
+      
+      // Show success message temporarily
+      setTimeout(() => {
+        setUploadSuccess(false);
+      }, 3000);
+    } catch (err) {
+      console.error("Upload error:", err);
+      setError(`Upload failed: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generateSQL = async () => {
+    if (!prompt.trim()) {
+      setError("Please enter a prompt");
+      return;
+    }
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("http://localhost:3000/api/ai/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!response.ok) throw new Error("Failed to generate SQL");
 
       const data = await response.json();
       setSqlQuery(data.sql);
       setActiveTab("sql");
-    } catch (err) {
+    } catch {
       setError("Failed to generate SQL. Please try again.");
-      console.error("Error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -134,288 +128,197 @@ const Home = () => {
       setError("No SQL query to execute");
       return;
     }
-
-    // Detect destructive query
-    const destructiveKeywords = ["DROP", "DELETE", "TRUNCATE", "ALTER", "UPDATE"];
-    const isDestructive = destructiveKeywords.some((kw) =>
-      sqlQuery.toUpperCase().includes(kw)
-    );
-
-    if (isDestructive) {
-      // Open confirmation modal
-      setPendingAction(() => runQuery);
-      setIsConfirmOpen(true);
-      return;
-    }
-
-    // Otherwise run directly
-    await runQuery();
-  };
-
-  const runQuery = async () => {
     setIsLoading(true);
     setError("");
 
     try {
-      const headers = { "Content-Type": "application/json" };
-      
-      // Add X-Guest header if user is guest
-      if (auth?.isGuest) {
-        headers["X-Guest"] = "true";
-      }
-
       const response = await fetch("http://localhost:3000/api/queries/run", {
         method: "POST",
-        headers,
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sql: sqlQuery,
           params: [],
-          userID: user.userId || "guest",
-          prompt: prompts[activePromptId] || "",
+          userID: user.userId,
+          prompt,
         }),
       });
 
       if (!response.ok) throw new Error("Failed to execute query");
 
       const data = await response.json();
+      console.log("Query result data:", data.result); // Debug log
       setQueryResult(data.result);
       setActiveTab("results");
-      setHistoryRefreshKey(historyRefreshKey + 1);
-      
-      // Check if the query was schema-modifying and refresh schema if needed
-      const schemaModifyingKeywords = ["CREATE", "DROP", "ALTER", "ADD", "MODIFY"];
-      const isSchemaModifying = schemaModifyingKeywords.some((kw) =>
-        sqlQuery.toUpperCase().includes(kw)
-      );
-      if (isSchemaModifying) {
-        setSchemaRefreshKey(prev => prev + 1);
-      }
+      setHistoryRefreshKey((prev) => prev + 1);
     } catch (err) {
-      setError(
-        "Failed to execute query. Please check your SQL syntax, or upload DB."
-      );
-      console.error("Error:", err);
+      console.error("Query execution error:", err);
+      setError(`Failed to execute query: ${err.message || "Please upload a database file first."}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const saveToHistory = async (promptText, sql) => {
-    try {
-      const res = await fetch("http://localhost:3000/api/history", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userID: user.userId,
-          prompt: promptText,
-          sql,
-          save: true,
-        }),
-      });
-      if (!res.ok) throw new Error("Failed to save to history");
-      const data = await res.json();
-      // Optimistically update history panel
-      setHistory((prev) => [data, ...prev]);
-      setHistoryRefreshKey(historyRefreshKey + 1);
-    } catch (err) {
-      console.error("Failed to save to history:", err);
-    }
-  };
-
-  const exportResults = async (format) => {
-    if (!sqlQuery.trim()) {
-      setError("No SQL query to export");
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `http://localhost:3000/api/queries/export/${format}?sql=${encodeURIComponent(
-          sqlQuery
-        )}`
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to export results");
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `query_results.${format}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err) {
-      setError("Failed to export results");
-      console.error("Error:", err);
-    }
-  };
-
   const clearAll = () => {
-    // Clear the current active prompt
-    setPrompts(prev => ({
-      ...prev,
-      [activePromptId]: ""
-    }));
+    setPrompt("");
     setSqlQuery("");
     setQueryResult(null);
     setError("");
-    setActiveTab("prompt");
+    setActiveTab("sql");
   };
 
-  if (!user) {
-    return <div>Loading...</div>;
-  }
-
+  if (!user) return <div>Loading...</div>;
 
   return (
     <div className="home-page">
+      {/* Header */}
       <header className="home-header">
-        <div className="header-content">
-          <div className="logo">
-            <h1>NL2SQL</h1>
-            <span>Natural Language to SQL</span>
-          </div>
-          <div className="user-info">
-            {auth?.isGuest && (
-              <div className="badge">
-                🧪 Guest mode — history is disabled
-              </div>
-            )}
-            <span>
-              Welcome,{" "}
-              {user.firstName
-                ? `${user.firstName} ${user.lastName || ""}`
-                : user.email || user.userId || "Guest"}
-              !
-            </span>
-            <button onClick={handleLogout} className="logout-btn">
-              Logout
-            </button>
-          </div>
-        </div>
+        <div className="logo">NL2SQL</div>
+        <button onClick={handleLogout} className="logout-btn">
+          Logout
+        </button>
       </header>
 
+      {/* Main grid */}
       <main className="home-main">
-        <div className="main-container">
-          {/* File Uploader Section */}
-          <div className="uploader-section">
-            <h2>Upload Your Database</h2>
-            <FileUploader onUploadSuccess={handleFileUploadSuccess} onFileSelect={setUploadedFile} />
-            <DownloadDbButton />
-          </div>
-          
-          <div className="input-section">
-            <TabbedPromptInput 
-              prompts={prompts}
-              setPrompts={setPrompts}
-              activePromptId={activePromptId}
-              setActivePromptId={setActivePromptId}
-              onGenerate={generateSQL}
-              isLoading={isLoading}
+        <div className="main-grid">
+          {/* LEFT SIDE */}
+          <div className="left-panel">
+            <img
+              src="/assets/secretary-desk.png"
+              alt="Grandma"
+              className="grandma-img"
             />
-          </div>
 
-          <div className="tabs-section">
-            <div className="tabs">
-              <button
-                className={`tab ${activeTab === "sql" ? "active" : ""}`}
-                onClick={() => setActiveTab("sql")}
-                disabled={!sqlQuery}
-              >
-                Generated SQL
-              </button>
-              <button
-                className={`tab ${activeTab === "results" ? "active" : ""}`}
-                onClick={() => setActiveTab("results")}
-                disabled={!queryResult}
-              >
-                Query Results
-              </button>
+            {/* Upload photo - right under grandma at very left */}
+            <div
+              className={`upload-photo ${uploadedFile ? "occupied" : ""}`}
+              onClick={() => document.getElementById("file-input").click()}
+            >
+              <img 
+                src={uploadedFile ? "/assets/uploaded.png" : "/assets/upload.png"} 
+                alt={uploadedFile ? "Uploaded" : "Upload"} 
+              />
+              <span className="upload-text">Upload or drag your data here</span>
             </div>
 
-            <div className="tab-content">
-              {activeTab === "sql" && sqlQuery && (
-                <div className="sql-preview">
-                  <div className="sql-header">
-                    <h3>Generated SQL Query</h3>
-                    <SqlActions onExecute={executeQuery} onClear={clearAll} isLoading={isLoading} />
-
-                    {/* Confirmation Modal */}
-                    <ConfirmModal
-                      isOpen={isConfirmOpen}
-                      message="⚠️ This query may modify or delete data. Do you really want to proceed?"
-                      onConfirm={() => {
-                        setIsConfirmOpen(false);
-                        if (pendingAction) pendingAction();
-                      }}
-                      onCancel={() => setIsConfirmOpen(false)}
-                    />
-
-                  </div>
-                  <pre className="sql-code">{sqlQuery}</pre>
-                </div>
-              )}
-
-              {activeTab === "results" && queryResult && (
-                <div className="results-preview">
-                  <div className="results-header">
-                    <h3>Query Results</h3>
-                    <ExportButtons onExport={exportResults} />
-                  </div>
-                  <ResultsTable results={queryResult} />
-                </div>
-              )}
-
-              {!sqlQuery && !queryResult && (
-                <div className="empty-state">
-                  <div className="empty-icon">💡</div>
-                  <h3>Ready to generate SQL?</h3>
-                  <p>
-                    Enter a natural language query above and click "Generate
-                    SQL" to get started.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {error && <div className="error-message">{error}</div>}
-
-          {/* Panel Section with Tabs */}
-          <div className="panel-section">
-            <div className="panel-tabs">
-              <button
-                className={`panel-tab ${activePanelTab === "history" ? "active" : ""}`}
-                onClick={() => setActivePanelTab("history")}
+            {/* History bar - right next to upload photo */}
+            <div className={`history-bar ${historyExpanded ? 'expanded' : ''}`}>
+              <div 
+                className="history-header-bar"
+                onClick={() => setHistoryExpanded(!historyExpanded)}
               >
-                History
-              </button>
-              <button
-                className={`panel-tab ${activePanelTab === "schema" ? "active" : ""}`}
-                onClick={() => setActivePanelTab("schema")}
-              >
-                Schema
-              </button>
+                <span className="history-title">History</span>
+                <span className={`history-arrow ${historyExpanded ? 'expanded' : ''}`}>▼</span>
+              </div>
+              {historyExpanded && (
+                <div className="history-content">
+                  <HistoryPanel
+                    userId={user?.userId}
+                    refreshKey={historyRefreshKey}
+                    onSelectHistory={(item) => {
+                      if (item) {
+                        setPrompt(item.prompt);
+                        setSqlQuery(item.sql);
+                        setActiveTab("sql");
+                      }
+                    }}
+                  />
+                </div>
+              )}
             </div>
             
-            <div className="panel-content">
-              {activePanelTab === "history" && (
-                <HistoryPanel
-                  userId={user?.userId}
-                  onSelectHistory={handleSelectHistory}
-                  refreshKey={historyRefreshKey}
+            {/* Speech bubble */}
+            <div className={`speech-bubble ${uploadedFile ? "hidden" : "visible"}`}>
+              <div className="bubble-content">
+                <p>Upload or drag your DB here</p>
+              </div>
+              <div className="bubble-tail"></div>
+            </div>
+            
+            <input
+              id="file-input"
+              type="file"
+              accept=".db"
+              style={{ display: "none" }}
+              onChange={handleFileUpload}
+            />
+
+            {/* Spacer to push buttons to bottom */}
+            <div className="spacer"></div>
+
+            {/* DB buttons - at very left bottom */}
+            <div className="db-buttons">
+              <DownloadDbButton />
+            </div>
+          </div>
+
+          {/* RIGHT SIDE */}
+          <div className="right-panel">
+            {/* Screen with SQL terminal inside */}
+            <div className="screen-wrapper">
+              <img src="/assets/screen.png" alt="Screen" className="screen-img" />
+              <div className="sql-terminal-inside">
+                {sqlQuery && (
+                  <div className="sql-preview">
+                    <div className="sql-header">
+                      <h3>SQL Terminal</h3>
+                      <SqlActions
+                        onExecute={executeQuery}
+                        onClear={clearAll}
+                        isLoading={isLoading}
+                      />
+                    </div>
+                    <pre className="sql-code">{displayedSql}</pre>
+                  </div>
+                )}
+
+                {queryResult && (
+                  <div className="results-preview">
+                    <div className="results-header">
+                      <h3>Query Results</h3>
+                      <ExportButtons />
+                    </div>
+                    <ResultsTable results={queryResult} />
+                  </div>
+                )}
+                {/* Debug: Show queryResult state */}
+                {console.log("Current queryResult:", queryResult)}
+                
+                {/* Test: Show a simple test result */}
+                <div style={{color: '#00ff00', marginTop: '10px', padding: '10px', border: '1px solid #00ff00'}}>
+                  <strong>Debug Info:</strong><br/>
+                  Database uploaded: {uploadedFile ? 'YES' : 'NO'}<br/>
+                  Database file: {uploadedFile ? uploadedFile.name : 'None'}<br/>
+                  QueryResult exists: {queryResult ? 'YES' : 'NO'}<br/>
+                  QueryResult type: {typeof queryResult}<br/>
+                  QueryResult length: {queryResult ? queryResult.length : 'N/A'}
+                </div>
+              </div>
+            </div>
+
+            {/* Query box with convert button */}
+            <div className="bottom-row">
+              <div className="query-box">
+                <PromptInput
+                  prompt={prompt}
+                  setPrompt={setPrompt}
+                  onGenerate={generateSQL}
+                  isLoading={isLoading}
                 />
-              )}
-              {activePanelTab === "schema" && <SchemaPanel refreshKey={schemaRefreshKey} />}
+              </div>
+              <button 
+                onClick={generateSQL}
+                className="convert-btn"
+                disabled={!prompt.trim() || isLoading}
+              >
+                {isLoading ? "Converting..." : "Convert to SQL"}
+              </button>
             </div>
           </div>
         </div>
+
+        {error && <div className="error-message">{error}</div>}
+        {uploadSuccess && <div className="success-message">✅ Database uploaded successfully!</div>}
       </main>
     </div>
   );

@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Home from './pages/Home'
+import Landing from './pages/Landing'
 
 function App() {
 
-  const [currentPage, setCurrentPage] = useState('login')
+  const [currentPage, setCurrentPage] = useState('landing')
 
   // Simple routing based on URL hash
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash.slice(1) || 'login'
+      const hash = window.location.hash.slice(1) || 'landing'
       setCurrentPage(hash)
     }
 
@@ -27,6 +28,8 @@ function App() {
 
   const renderPage = () => {
     switch (currentPage) {
+      case 'landing':
+        return <Landing />
       case 'signup':
         return <Signup />
       case 'home':

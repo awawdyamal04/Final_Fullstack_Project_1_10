@@ -11,7 +11,7 @@ const SqlActions = ({ onExecute, onClear, isLoading }) => {
         {isLoading ? "Executing..." : "Execute Query"}
       </button>
       <button onClick={onClear} className="clear-btn">
-        Clear All
+        Reset
       </button>
     </div>
   );

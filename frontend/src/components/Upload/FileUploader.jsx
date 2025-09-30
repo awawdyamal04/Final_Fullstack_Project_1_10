@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Upload, CheckCircle, AlertCircle } from "lucide-react";
 import "./FileUploader.css";
 
-const FileUploader = ({ onUploadSuccess, onFileSelect }) => {
+const FileUploader = ({ onUploadSuccess }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -31,6 +31,7 @@ const FileUploader = ({ onUploadSuccess, onFileSelect }) => {
     try {
       const formData = new FormData();
       formData.append("dbfile", selectedFile);
+
       const response = await fetch("http://localhost:3000/api/db/upload", {
         method: "POST",
         body: formData,
@@ -42,7 +43,6 @@ const FileUploader = ({ onUploadSuccess, onFileSelect }) => {
       setMessage({ type: "success", text: "File uploaded successfully!" });
 
       if (onUploadSuccess) onUploadSuccess(data);
-      if (onFileSelect) onFileSelect(selectedFile);
 
       setTimeout(() => {
         setMessage({ type: "", text: "" });
