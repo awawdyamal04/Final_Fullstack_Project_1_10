@@ -231,6 +231,7 @@
 .history-title {
   font-size: clamp(0.8rem, 1.2vw, 1rem);
   font-weight: 600;
+  color: #00ff00 !important;
 }
 
 .history-arrow {

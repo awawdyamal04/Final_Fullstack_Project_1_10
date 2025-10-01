@@ -96,9 +96,24 @@ export async function forgotPassword(req, res) {
     user.resetPasswordExpires = resetTokenExpiry;
     await user.save();
 
+    const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/#reset-password/${resetToken}`;
 
-    const resetLink = `${process.env.FRONTEND_URL}/#reset-password/${resetToken}`;
+    // Check if email is configured
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      // Development mode - log the reset link instead of sending email
+      console.log("🔗 Password Reset Link (Development Mode):");
+      console.log(`   Email: ${email}`);
+      console.log(`   Reset Link: ${resetLink}`);
+      console.log("   Note: Email configuration missing. Set EMAIL_USER and EMAIL_PASS in .env file for production.");
+      
+      return res.status(200).json({
+        success: true,
+        message: `Password reset link generated. In development mode, check the server console for the reset link: ${resetLink}`,
+        resetLink: resetLink // Include the link in response for development
+      });
+    }
 
+    // Production mode - send email
     const mailOptions = {
       from: '"nl2sql Support" <nl2sqlnl2sql@gmail.com>',
       to: email,
@@ -114,14 +129,13 @@ export async function forgotPassword(req, res) {
 
     res.status(200).json({
       success: true,
-      message:
-        "Password reset instructions have been sent to your email address.",
+      message: "Password reset instructions have been sent to your email address.",
     });
   } catch (error) {
-    console.error("Error sending reset email:", error);
+    console.error("Error in forgot password:", error);
     res
       .status(500)
-      .json({ success: false, error: "Failed to send reset email" });
+      .json({ success: false, error: "Failed to process password reset request" });
   }
 }
 

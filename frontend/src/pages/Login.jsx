@@ -123,8 +123,43 @@ const Login = () => {
 
   const handleForgotPasswordSubmit = async (e) => {
     e.preventDefault();
-    alert("Password reset instructions have been sent to your email!");
-    setShowForgotPassword(false);
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const formData = new FormData(e.target);
+      const email = formData.get('email');
+
+      if (!email) {
+        setError("Please enter your email address");
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await fetch("http://localhost:3000/api/users/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Show the reset link in development mode
+        if (data.resetLink) {
+          alert(`Development Mode: ${data.message}\n\nReset Link: ${data.resetLink}`);
+        } else {
+          alert(data.message);
+        }
+        setShowForgotPassword(false);
+      } else {
+        setError(data.error || "Failed to send reset instructions");
+      }
+    } catch (err) {
+      setError("Network error. Please check your connection and try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -146,12 +181,22 @@ const Login = () => {
                 <label htmlFor="email">Email Address</label>
                 <input type="email" id="email" name="email" placeholder="Enter your email address" required />
               </div>
-              <button type="submit" className="login-button">Send Reset Instructions</button>
+              {error && <div className="error-message">{error}</div>}
+              <button type="submit" className={`login-button ${isLoading ? "loading" : ""}`} disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <span className="spinner"></span>
+                    Sending...
+                  </>
+                ) : (
+                  "Send Reset Instructions"
+                )}
+              </button>
             </form>
             <div className="login-footer">
               <p>
                 Remember your password?{" "}
-                <a href="#" onClick={() => setShowForgotPassword(false)}>Back to Login</a>
+                <a href="#" onClick={(e) => { e.preventDefault(); setShowForgotPassword(false); }}>Back to Login</a>
               </p>
             </div>
           </div>
@@ -216,7 +261,7 @@ const Login = () => {
                 <input type="checkbox" id="rememberMe" name="rememberMe" checked={formData.rememberMe} onChange={handleChange} />
                 <label htmlFor="rememberMe">Remember me</label>
               </div>
-              <a href="#" onClick={handleForgotPassword} className="forgot-password">Forgot password?</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleForgotPassword(); }} className="forgot-password">Forgot password?</a>
             </div>
             {error && <div className="error-message">{error}</div>}
             <button type="submit" className={`login-button ${isLoading ? "loading" : ""}`} disabled={isLoading}>
