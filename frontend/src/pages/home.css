@@ -25,6 +25,35 @@
   font-weight: bold;
 }
 
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.welcome-message {
+  color: #ffd54f;
+  font-size: clamp(0.8rem, 1.2vw, 1rem);
+  font-weight: 500;
+}
+
+.settings-btn {
+  background: #ffd54f;
+  border: none;
+  color: #1A3F36;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: clamp(0.8rem, 1.2vw, 1rem);
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.settings-btn:hover {
+  background: #ffc107;
+  transform: translateY(-1px);
+}
+
 .logout-btn {
   background: #d35400;
   border: none;
@@ -371,6 +400,92 @@
   min-width: 0; /* Allow flex shrinking */
 }
 
+/* Query Tabs */
+.query-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  background: #12322d;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 2px solid #ffd54f;
+  flex-shrink: 0;
+  overflow-x: auto;
+  min-width: 0;
+}
+
+.query-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #2a2a2a;
+  color: #fff;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid #333;
+  border-bottom: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.query-tab:hover {
+  background: #3a3a3a;
+}
+
+.query-tab.active {
+  background: #ffd54f;
+  color: #1A3F36;
+  border-color: #ffd54f;
+  font-weight: 600;
+}
+
+.close-tab {
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  color: #ff4444;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 0;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}
+
+.close-tab:hover {
+  background: rgba(255, 0, 0, 0.2);
+  border-color: #ff4444;
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.add-query-btn {
+  background: #00ff00;
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  margin-left: 0.5rem;
+}
+
+.add-query-btn:hover {
+  background: #00cc00;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 255, 0, 0.3);
+}
+
 .sql-terminal {
   flex: 1;
   background: #1c1c1c;
@@ -675,6 +790,16 @@
     width: 65%;
     max-width: 45vw;
   }
+  
+  .query-tabs {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  
+  .query-tab {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
 }
 
 @media (max-width: 768px) {
@@ -697,6 +822,20 @@
   .screen-wrapper {
     width: 60%;
     max-width: 40vw;
+  }
+  
+  .query-tabs {
+    padding: 0.25rem;
+  }
+  
+  .query-tab {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+  }
+  
+  .add-query-btn {
+    padding: 0.3rem 0.6rem;
+    font-size: 1rem;
   }
 }
 

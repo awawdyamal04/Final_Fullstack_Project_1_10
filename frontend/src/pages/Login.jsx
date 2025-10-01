@@ -35,7 +35,10 @@ const Login = () => {
 
   // Handle Google OAuth callback
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
+    // For hash-based routing, we need to parse parameters from the hash
+    const hash = window.location.hash;
+    const queryString = hash.includes('?') ? hash.split('?')[1] : '';
+    const urlParams = new URLSearchParams(queryString);
     const success = urlParams.get('success');
     const error = urlParams.get('error');
     const userData = urlParams.get('user');
@@ -43,15 +46,22 @@ const Login = () => {
     if (success === 'true' && userData) {
       try {
         const user = JSON.parse(decodeURIComponent(userData));
-        // Store user data
+        // Store user data and token
         localStorage.setItem("user", JSON.stringify(user));
-        // Redirect to home
+        if (user.token) {
+          localStorage.setItem("token", user.token);
+        }
+        // Clear URL parameters and redirect to home
+        window.history.replaceState({}, document.title, window.location.pathname + "#login");
         window.location.href = "#home";
       } catch (err) {
+        console.error("Failed to parse user data:", err);
         setError("Failed to process Google authentication data");
       }
     } else if (error) {
       setError(decodeURIComponent(error));
+      // Clear URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname + "#login");
     }
   }, []);
 
@@ -102,8 +112,10 @@ const Login = () => {
 
         if (formData.rememberMe) {
           localStorage.setItem("user", JSON.stringify(userData));
+          localStorage.setItem("token", data.token);
         } else {
           sessionStorage.setItem("user", JSON.stringify(userData));
+          sessionStorage.setItem("token", data.token);
         }
 
         window.location.href = "#home";
