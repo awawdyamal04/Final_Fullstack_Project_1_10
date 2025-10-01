@@ -3,6 +3,7 @@ import { transporter } from "../config/mailer.js";
 import { User } from "../models/User.js";
 import crypto from "crypto"; // for generating secure tokens
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 
 // for password hashing
@@ -54,9 +55,17 @@ export async function login(req, res) {
         .json({ success: false, error: "Invalid credentials" });
     }
 
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id, email: user.email },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '7d' }
+    );
+
     // Normalize response to what frontend expects
     res.status(200).json({
       success: true,
+      token: token,
       user: {
         id: user._id,
         email: user.email,
@@ -170,5 +179,85 @@ export async function resetPassword(req, res) {
   } catch (error) {
     console.error("Error resetting password:", error);
     res.status(500).json({ success: false, error: "Failed to reset password" });
+  }
+}
+
+export async function getUserProfile(req, res) {
+  try {
+    const userId = req.user.userId;
+    const user = await User.findById(userId).select('-password -resetPasswordToken -resetPasswordExpires');
+    
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        profilePicture: user.profilePicture,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    console.error("Error getting user profile:", error);
+    res.status(500).json({ success: false, error: "Failed to get user profile" });
+  }
+}
+
+export async function updateUser(req, res) {
+  try {
+    const userId = req.user.userId;
+    const { firstName, lastName, email, currentPassword, newPassword } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    // Update basic information
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (email) user.email = email;
+
+    // Update password if provided
+    if (newPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Current password is required to change password" 
+        });
+      }
+
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Current password is incorrect" 
+        });
+      }
+
+      user.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        profilePicture: user.profilePicture
+      }
+    });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ success: false, error: "Failed to update profile" });
   }
 }
